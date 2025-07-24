@@ -21,7 +21,7 @@
         .screen {
             width: 100%; height: 100%; position: absolute; top: 0; left: 0;
             display: none; flex-direction: column; background-color: var(--bg-chat-light);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease;
         }
         .screen.active { display: flex; }
         #loader-screen { justify-content: center; align-items: center; }
@@ -67,9 +67,9 @@
         .contact-list-item:hover, .chat-list-item:hover { background-color: var(--bg-header); }
         .avatar { width: 50px; height: 50px; border-radius: 50%; background-color: var(--border-color); color: var(--text-secondary); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5rem; overflow: hidden; flex-shrink: 0; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .item-details { flex-grow: 1; }
+        .item-details { flex-grow: 1; overflow: hidden; }
         .item-details .name { font-weight: 600; font-size: 1.1rem; color: var(--text-primary); }
-        .item-details .subtext { color: var(--text-secondary); font-size: 0.9rem; }
+        .item-details .subtext { color: var(--text-secondary); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
             background-color: var(--bg-header); display: flex; justify-content: space-around;
@@ -92,29 +92,28 @@
         #chat-window.active { transform: translateX(0); }
         .chat-header {
             height: 60px; background-color: var(--bg-header); display: flex;
-            align-items: center; gap: 15px; padding: 0 16px; box-shadow: var(--shadow);
+            align-items: center; gap: 15px; padding: 0 10px; box-shadow: var(--shadow);
         }
-        .back-arrow { font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
+        .back-arrow { font-size: 1.8rem; cursor: pointer; color: var(--text-secondary); padding: 5px; }
         .messages-container { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
-        .messages-wrapper { display: flex; flex-direction: column; }
-        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; margin-bottom: 5px; line-height: 1.4; word-wrap: break-word; box-shadow: var(--shadow); }
+        .messages-wrapper { display: flex; flex-direction: column; gap: 3px; }
+        .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; line-height: 1.4; word-wrap: break-word; box-shadow: var(--shadow); }
         .my-message { background-color: var(--bg-my-message); align-self: flex-end; }
         .friend-message { background-color: var(--bg-chat-light); align-self: flex-start; }
-        .message-input-form { display: flex; padding: 8px 12px; align-items: center; background: transparent; }
+        .message-input-form { display: flex; padding: 8px 12px; align-items: center; background: var(--bg-main); }
         #message-input { flex-grow: 1; background-color: var(--bg-chat-light); border: none; border-radius: 25px; padding: 12px 18px; color: var(--text-primary); font-size: 1rem; margin-right: 8px; }
         #send-button { background: var(--primary-medium); border: none; color: white; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         #send-button svg { width: 24px; height: 24px; fill: white; }
     </style>
     
-    <!-- নতুন Firebase স্ক্রিপ্ট (হেড ট্যাগের ভেতর) -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
-    <!-- HTML Body অপরিবর্তিত আছে -->
     <div id="loader-screen" class="screen active"><div class="loader"></div></div>
+    
     <div id="login-screen" class="screen auth-screen">
         <div>
             <h1>Welcome to ChatApp</h1>
@@ -122,6 +121,7 @@
             <button id="google-signin-btn" class="btn primary-btn">Sign in with Google</button>
         </div>
     </div>
+    
     <div id="display-name-screen" class="screen auth-screen">
         <div>
             <h2>What's your name?</h2>
@@ -132,6 +132,7 @@
             </form>
         </div>
     </div>
+    
     <div id="main-app-screen" class="screen">
         <header id="main-header">
             <h1 class="app-title">ChatApp</h1>
@@ -142,7 +143,14 @@
                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Loading your contacts...</p>
             </div>
             <div id="chats-view" class="main-view"></div>
-            <div id="profile-view" class="main-view"></div>
+            <div id="profile-view" class="main-view">
+                 <div style="text-align: center; padding: 20px;">
+                    <div class="avatar" style="width: 120px; height: 120px; margin: 20px auto; font-size: 4rem;" id="profile-page-avatar"></div>
+                    <h2 id="profile-page-name" style="font-size: 1.8rem; margin-bottom: 10px;"></h2>
+                    <p id="profile-page-email" style="color: var(--text-secondary); margin-bottom: 30px;"></p>
+                    <button id="logout-btn" class="btn" style="background-color: #ff4d4d; color: white; max-width: 200px;">Logout</button>
+                </div>
+            </div>
         </main>
         <nav id="bottom-nav">
             <button class="nav-btn active" data-view="home-view">
@@ -159,11 +167,12 @@
             </button>
         </nav>
     </div>
+    
     <div id="chat-window">
         <header class="chat-header">
             <span class="back-arrow">←</span>
             <div class="avatar" id="chat-avatar"></div>
-            <h3 id="chat-with-name"></h3>
+            <h3 id="chat-with-name" class="item-details name"></h3>
         </header>
         <div class="messages-container">
             <div class="messages-wrapper"></div>
@@ -176,9 +185,15 @@
         </form>
     </div>
 
-    <!-- পরিবর্তিত জাভাস্ক্রিপ্ট -->
+    <div id="search-overlay" class="screen">
+        <header id="main-header" style="position: static; box-shadow: none; border-bottom: 1px solid var(--border-color);">
+            <span class="back-arrow" id="search-back-arrow">←</span>
+            <input type="text" id="search-input" placeholder="Search by name..." style="flex-grow: 1; border: none; font-size: 1.1rem; background: transparent; padding: 10px;">
+        </header>
+        <div id="search-results" style="overflow-y: auto; flex-grow: 1;"></div>
+    </div>
+
     <script>
-        // --- তোমার ফায়ারবেস কনফিগারেশন ---
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
           authDomain: "abhijitchatapp.firebaseapp.com",
@@ -189,12 +204,10 @@
           measurementId: "G-S9MH55NK4N"
         };
         
-        // --- Firebase সার্ভিস ইনিশিয়ালাইজ করা (নতুন উপায়) ---
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- DOM এলিমেন্টস ---
         const screens = document.querySelectorAll('.screen');
         const googleBtn = document.getElementById('google-signin-btn');
         const displayNameForm = document.getElementById('display-name-form');
@@ -209,21 +222,38 @@
         const backArrow = chatWindow.querySelector('.back-arrow');
         const chatAvatar = document.getElementById('chat-avatar');
         const chatWithName = document.getElementById('chat-with-name');
+        const searchBtn = document.getElementById('search-btn');
+        const searchOverlay = document.getElementById('search-overlay');
+        const searchInput = document.getElementById('search-input');
+        const searchResults = document.getElementById('search-results');
+        const searchBackArrow = document.getElementById('search-back-arrow');
+        const profileView = document.getElementById('profile-view');
+        const logoutBtn = document.getElementById('logout-btn');
         
         let currentUser = null;
         let currentChatFriend = null;
         let currentChatId = null;
         let unsubscribeMessages = null;
 
-        // --- Helper ফাংশন ---
         const showScreen = (id) => screens.forEach(s => s.classList.toggle('active', s.id === id));
-        const showMainView = (viewId) => {
+        
+        function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
             navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
-        };
+            if (viewId === 'profile-view') {
+                loadProfileData();
+            }
+        }
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
 
-        // --- মূল লজিক ---
+        searchBtn.addEventListener('click', () => searchOverlay.classList.add('active'));
+        searchBackArrow.addEventListener('click', () => {
+            searchOverlay.classList.remove('active');
+            searchInput.value = '';
+            searchResults.innerHTML = '';
+        });
+        logoutBtn.addEventListener('click', () => auth.signOut());
+
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const userDocRef = db.collection('users').doc(user.uid);
@@ -280,6 +310,16 @@
                 }
             });
         }
+        
+        function loadProfileData() {
+            if (!currentUser) return;
+            const profileAvatar = document.getElementById('profile-page-avatar');
+            const profileName = document.getElementById('profile-page-name');
+            const profileEmail = document.getElementById('profile-page-email');
+            profileAvatar.innerHTML = `<img src="${currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}&background=random`}" alt="">`;
+            profileName.textContent = currentUser.displayName;
+            profileEmail.textContent = currentUser.email;
+        }
 
         function openChat(friendData) {
             currentChatFriend = friendData;
@@ -287,7 +327,7 @@
             chatWithName.textContent = friendData.displayName;
             chatAvatar.innerHTML = `<img src="${friendData.photoURL || `https://ui-avatars.com/api/?name=${friendData.displayName}&background=random`}" alt="">`;
             
-            currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentChatFriend.uid}`;
+            currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
             const chatRef = db.collection('chats').doc(currentChatId);
 
             if (unsubscribeMessages) unsubscribeMessages();
@@ -333,6 +373,34 @@
                     messages: firebase.firestore.FieldValue.arrayUnion(newMessage)
                 });
             }
+        });
+
+        searchInput.addEventListener('input', async (e) => {
+            const queryText = e.target.value.toLowerCase().trim();
+            searchResults.innerHTML = '';
+
+            if (queryText.length < 2) return;
+
+            const usersRef = db.collection('users');
+            const querySnapshot = await usersRef.get();
+            
+            querySnapshot.forEach(docSnap => {
+                const userData = { uid: docSnap.id, ...docSnap.data() };
+                if (userData.displayName && userData.displayName.toLowerCase().includes(queryText) && userData.uid !== currentUser.uid) {
+                    const contactElement = document.createElement('div');
+                    contactElement.className = 'contact-list-item';
+                    contactElement.innerHTML = `
+                        <div class="avatar"><img src="${userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`}" alt=""></div>
+                        <div class="item-details"><div class="name">${userData.displayName}</div></div>`;
+                    contactElement.onclick = () => {
+                        searchOverlay.classList.remove('active');
+                        searchInput.value = '';
+                        searchResults.innerHTML = '';
+                        openChat(userData);
+                    };
+                    searchResults.appendChild(contactElement);
+                }
+            });
         });
 
     </script>
