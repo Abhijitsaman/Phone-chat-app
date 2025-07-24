@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
     <style>
-        /* CSS কোড অপরিবর্তিত আছে */
+        /* CSS অপরিবর্তিত আছে */
         :root {
             --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
             --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
@@ -206,7 +206,6 @@
     </div>
 
     <script>
-        // --- Firebase Config ---
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
           authDomain: "abhijitchatapp.firebaseapp.com",
@@ -221,7 +220,6 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- DOM Elements ---
         const screens = document.querySelectorAll('.screen');
         const phoneAuthSection = document.getElementById('phone-auth-section');
         const phoneInput = document.getElementById('phone-number-input');
@@ -249,13 +247,11 @@
         const searchBackArrow = document.getElementById('search-back-arrow');
         const logoutBtn = document.getElementById('logout-btn');
         
-        // --- Global State ---
         let currentUser = null;
         let currentChatFriend = null;
         let currentChatId = null;
         let unsubscribeMessages = null;
 
-        // --- Helper Functions ---
         const showScreen = (id) => screens.forEach(s => s.classList.toggle('active', s.id === id));
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
@@ -265,7 +261,6 @@
             }
         }
         
-        // --- Event Listeners ---
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
         searchBtn.addEventListener('click', () => searchOverlay.classList.add('active'));
         searchBackArrow.addEventListener('click', () => {
@@ -276,16 +271,25 @@
         logoutBtn.addEventListener('click', () => auth.signOut());
 
         // --- Phone Auth Logic ---
-        window.onload = function() {
+
+        // এই ফাংশনটি reCAPTCHA তৈরি করবে।
+        function renderRecaptcha() {
             window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
                 'size': 'invisible',
-                'callback': (response) => { /* reCAPTCHA solved */ }
+                'callback': (response) => {
+                    // reCAPTCHA সমাধান হয়ে গেলে এই ফাংশন কল হয়।
+                    // OTP পাঠানোর কাজটা এখান থেকেও করা যায়।
+                }
             });
-        };
+            window.recaptchaVerifier.render(); // এটা reCAPTCHA-কে স্ক্রিনে দেখানোর জন্য জরুরি
+        }
 
         sendOtpBtn.addEventListener('click', () => {
             const phoneNumber = phoneInput.value;
-            if (phoneNumber.length < 10) { alert("Please enter a valid phone number with country code (e.g., +91)."); return; }
+            if (!phoneNumber.startsWith('+')) {
+                alert("Please enter a valid phone number with country code (e.g., +911234567890).");
+                return;
+            }
             
             sendOtpBtn.disabled = true;
             sendOtpBtn.textContent = 'Sending...';
@@ -299,9 +303,6 @@
                 }).catch((error) => {
                     console.error("Error sending OTP:", error);
                     alert("Failed to send OTP. Please check the number or refresh the page and try again.");
-                    window.recaptchaVerifier.render().then(widgetId => {
-                        grecaptcha.reset(widgetId);
-                    });
                 }).finally(() => {
                     sendOtpBtn.disabled = false;
                     sendOtpBtn.textContent = 'Send OTP';
@@ -325,7 +326,6 @@
             });
         });
 
-        // --- Core App Logic ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const userDocRef = db.collection('users').doc(user.uid);
@@ -364,7 +364,7 @@
             const usersRef = db.collection('users');
             try {
                 const querySnapshot = await usersRef.where('displayName', '!=', null).get();
-                if (querySnapshot.empty) {
+                if (querySnapshot.docs.length <= 1) { // 1 কারণ শুধু নিজেই আছে
                     homeView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">No other users found. Tell your friends to join!</p>';
                 }
                 querySnapshot.forEach((docSnap) => {
@@ -394,7 +394,6 @@
             document.getElementById('profile-page-phone').textContent = currentUser.phoneNumber;
         }
 
-        // --- Chat and Search Logic ---
         function openChat(friendData) {
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
@@ -475,6 +474,13 @@
                 console.error("Search error:", error);
             }
         });
+
+        // --- পেজ লোড হওয়ার পর reCAPTCHA তৈরি করা ---
+        // এই পরিবর্তনটাই সবথেকে গুরুত্বপূর্ণ
+        window.onload = function() {
+            renderRecaptcha();
+        };
+
     </script>
 </body>
 </html>
