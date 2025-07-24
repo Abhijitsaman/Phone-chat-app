@@ -370,7 +370,8 @@
                                 const userDocRef = db.collection('users').doc(friendUid);
                                 const userDocSnap = await userDocRef.get();
 
-                                if (userDocSnap.exists()) {
+                                // **** এই লাইনটাতেই ভুল ছিল, এখন ঠিক করা হলো ****
+                                if (userDocSnap.exists) { // এখানে .exists() হবে না, শুধু .exists হবে
                                     alert(`Friend found! Name: ${userDocSnap.data().displayName}`);
                                     const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
                                     openChat(friendData);
