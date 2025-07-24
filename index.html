@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
     <style>
-        /* CSS কোড অপরিবর্তিত আছে, শুধু QR কোডের জন্য কিছু স্টাইল যোগ করা হয়েছে */
+        /* CSS কোড অপরিবর্তিত আছে */
         :root {
             --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
             --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
@@ -120,7 +120,7 @@
         #send-button svg { width: 24px; height: 24px; fill: white; }
     </style>
     
-    <!-- নতুন QR কোড লাইব্রেরি যোগ করা হলো -->
+    <!-- QR কোড লাইব্রেরি অপরিবর্তিত -->
     <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.0.9/dist/html5-qrcode.min.js"></script>
 
@@ -130,9 +130,9 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
-
-    <div id="loader-screen" class="screen active"><div class="loader"></div></div>
     
+    <!-- HTML Body অপরিবর্তিত -->
+    <div id="loader-screen" class="screen active"><div class="loader"></div></div>
     <div id="login-screen" class="screen auth-screen active">
         <div>
             <h1>Welcome to ChatApp</h1>
@@ -140,7 +140,6 @@
             <button id="google-signin-btn" class="btn primary-btn">Sign in with Google</button>
         </div>
     </div>
-    
     <div id="display-name-screen" class="screen auth-screen">
         <div>
             <h2>What's your name?</h2>
@@ -151,18 +150,15 @@
             </form>
         </div>
     </div>
-    
     <div id="main-app-screen" class="screen">
         <header id="main-header">
             <h1 class="app-title">ChatApp</h1>
-            <!-- সার্চ বাটনের জায়গায় QR স্ক্যান বাটন -->
             <button id="scan-qr-btn">
                 <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 21h8v-8h-8v8zm2-6h4v4h-4v-4z"></path></svg>
             </button>
         </header>
         <main id="main-content">
             <div id="home-view" class="main-view active">
-                <!-- এখানে বন্ধুদের লিস্ট লোড হবে -->
                  <p style="text-align:center; padding:20px; color: var(--text-secondary);">Add friends by scanning their QR code.</p>
             </div>
             <div id="chats-view" class="main-view"></div>
@@ -171,17 +167,13 @@
                     <div class="avatar" style="width: 120px; height: 120px; margin: 20px auto; font-size: 4rem;" id="profile-page-avatar"></div>
                     <h2 id="profile-page-name" style="font-size: 1.8rem; margin-bottom: 10px;"></h2>
                     <p id="profile-page-email" style="color: var(--text-secondary); margin-bottom: 30px;"></p>
-                    
-                    <!-- QR কোড এখানে দেখানো হবে -->
                     <div id="qr-code-container"></div>
                     <p style="color: var(--text-secondary); margin-top:10px;">Let others scan this code to add you.</p>
-
                     <button id="logout-btn" class="btn" style="background-color: #ff4d4d; color: white; max-width: 200px; margin-top: 30px;">Logout</button>
                 </div>
             </div>
         </main>
         <nav id="bottom-nav">
-             <!-- পুরনো কোডের মতো একই থাকবে -->
             <button class="nav-btn active" data-view="home-view">
                 <svg viewBox="0 0 24 24"><path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"></path></svg>
                 <span class="nav-text">Home</span>
@@ -196,8 +188,6 @@
             </button>
         </nav>
     </div>
-    
-    <!-- চ্যাট উইন্ডো অপরিবর্তিত -->
     <div id="chat-window">
         <header class="chat-header">
             <span class="back-arrow">←</span>
@@ -214,13 +204,10 @@
             </button>
         </form>
     </div>
-
-    <!-- সার্চ ওভারলের বদলে QR স্ক্যানার ওভারলে -->
     <div id="qr-scanner-overlay">
         <button id="close-scanner-btn">×</button>
         <div id="qr-reader" style="width: 300px"></div>
     </div>
-
 
     <script>
         // --- Firebase Config অপরিবর্তিত ---
@@ -238,7 +225,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- DOM Elements ---
+        // --- DOM Elements অপরিবর্তিত ---
         const screens = document.querySelectorAll('.screen');
         const googleBtn = document.getElementById('google-signin-btn');
         const displayNameForm = document.getElementById('display-name-form');
@@ -253,12 +240,9 @@
         const backArrow = chatWindow.querySelector('.back-arrow');
         const chatAvatar = document.getElementById('chat-avatar');
         const chatWithName = document.getElementById('chat-with-name');
-        
-        // সার্চের বদলে QR কোডের DOM এলিমেন্টস
         const scanQrBtn = document.getElementById('scan-qr-btn');
         const qrScannerOverlay = document.getElementById('qr-scanner-overlay');
         const closeScannerBtn = document.getElementById('close-scanner-btn');
-
         const logoutBtn = document.getElementById('logout-btn');
         
         // --- গ্লোবাল ভ্যারিয়েবল অপরিবর্তিত ---
@@ -270,17 +254,15 @@
         // --- Helper ফাংশন অপরিবর্তিত ---
         const showScreen = (id) => screens.forEach(s => s.classList.toggle('active', s.id === id));
         
-        // --- showMainView ফাংশন আপডেট করা হলো ---
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
             navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
             if (viewId === 'profile-view') {
-                loadProfileData(); // প্রোফাইল পেজ লোড করার সময় QR কোড জেনারেট হবে
+                loadProfileData();
             }
         }
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
 
-        // --- লগ-আউট ফাংশন অপরিবর্তিত ---
         logoutBtn.addEventListener('click', () => auth.signOut());
 
         // --- মূল অথেন্টিকেশন লজিক অপরিবর্তিত ---
@@ -292,7 +274,6 @@
                     currentUser = { uid: user.uid, ...userDocSnap.data() };
                     showScreen('main-app-screen');
                     showMainView('home-view');
-                    // loadContacts() এর বদলে এখন loadFriends() বা loadChats() কল করা যেতে পারে
                 } else {
                     showScreen('display-name-screen');
                 }
@@ -323,9 +304,7 @@
             }
         });
         
-        // --- loadContacts ফাংশন এখন আর ব্যবহার হবে না, তাই এটি মুছে দেওয়া যেতে পারে বা খালি রাখা যেতে পারে ---
-        
-        // --- প্রোফাইল পেজে ডেটা দেখানোর জন্য নতুন ফাংশন ---
+        // --- প্রোফাইল পেজে ডেটা দেখানোর জন্য নতুন ফাংশন অপরিবর্তিত ---
         function loadProfileData() {
             if (!currentUser) return;
             const profileAvatar = document.getElementById('profile-page-avatar');
@@ -334,21 +313,19 @@
             profileAvatar.innerHTML = `<img src="${currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}&background=random`}" alt="">`;
             profileName.textContent = currentUser.displayName;
             profileEmail.textContent = currentUser.email;
-
-            // QR কোড জেনারেট করা
             generateQrCode(currentUser.uid);
         }
 
-        // --- QR কোড জেনারেট এবং স্ক্যান করার নতুন লজিক ---
+        // --- QR কোড জেনারেট করার ফাংশন অপরিবর্তিত ---
         function generateQrCode(uid) {
             const qrContainer = document.getElementById("qr-code-container");
-            if (!qrContainer) return; // যদি এলিমেন্ট না পাওয়া যায়
-            qrContainer.innerHTML = ""; // পুরনো QR কোড মুছে ফেলা
+            if (!qrContainer) return;
+            qrContainer.innerHTML = "";
             const qrCode = new QRCodeStyling({
                 width: 220,
                 height: 220,
                 type: "svg",
-                data: `chatapp_user_id:${uid}`, // একটা ইউনিক প্রিফিক্স ব্যবহার করা হলো
+                data: `chatapp_user_id:${uid}`,
                 dotsOptions: { color: "#005c4b", type: "rounded" },
                 backgroundOptions: { color: "#ffffff" },
                 cornersSquareOptions: { type: "extra-rounded" }
@@ -366,6 +343,8 @@
         });
 
         let html5QrCode;
+        
+        // --- startQrScanner ফাংশনটি ডিবাগিং Alert মেসেজ সহ আপডেট করা হলো ---
         function startQrScanner() {
             try {
                 html5QrCode = new Html5Qrcode("qr-reader");
@@ -373,24 +352,39 @@
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (decodedText, decodedResult) => {
+                        // --- ডিবাগিং শুরু ---
                         stopQrScanner();
+                        alert(`QR Code Scanned! Data: ${decodedText}`);
+
                         if (decodedText.startsWith("chatapp_user_id:")) {
                             const friendUid = decodedText.split(":")[1];
+                            alert(`Friend's UID found: ${friendUid}`);
+
                             if(friendUid === currentUser.uid) {
                                 alert("You cannot add yourself!");
                                 return;
                             }
-                            const userDocRef = db.collection('users').doc(friendUid);
-                            const userDocSnap = await userDocRef.get();
-                            if (userDocSnap.exists) {
-                                const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
-                                openChat(friendData);
-                            } else {
-                                alert("User not found!");
+                            
+                            try {
+                                alert("Searching for friend in the database...");
+                                const userDocRef = db.collection('users').doc(friendUid);
+                                const userDocSnap = await userDocRef.get();
+
+                                if (userDocSnap.exists()) {
+                                    alert(`Friend found! Name: ${userDocSnap.data().displayName}`);
+                                    const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
+                                    openChat(friendData);
+                                } else {
+                                    alert("Error: User with this UID was not found in the database.");
+                                }
+                            } catch (error) {
+                                console.error("Error fetching friend data:", error);
+                                alert(`An error occurred while fetching friend data: ${error.message}`);
                             }
                         } else {
-                            alert("Invalid QR Code.");
+                            alert("This is not a valid ChatApp QR Code.");
                         }
+                        // --- ডিবাগিং শেষ ---
                     },
                     (errorMessage) => {}
                 ).catch((err) => {
@@ -402,6 +396,7 @@
             }
         }
         
+        // --- stopQrScanner ফাংশন অপরিবর্তিত ---
         function stopQrScanner() {
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
@@ -418,10 +413,8 @@
             chatWindow.classList.add('active');
             chatWithName.textContent = friendData.displayName;
             chatAvatar.innerHTML = `<img src="${friendData.photoURL || `https://ui-avatars.com/api/?name=${friendData.displayName}&background=random`}" alt="">`;
-            
             currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
             const chatRef = db.collection('chats').doc(currentChatId);
-
             if (unsubscribeMessages) unsubscribeMessages();
             unsubscribeMessages = chatRef.onSnapshot(docSnap => {
                 messagesWrapper.innerHTML = '';
@@ -445,7 +438,6 @@
             e.preventDefault();
             const text = messageInput.value.trim();
             if (text === '' || !currentChatId) return;
-            
             messageInput.value = '';
             const chatRef = db.collection('chats').doc(currentChatId);
             const newMessage = {
@@ -453,7 +445,6 @@
                 sender: currentUser.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-
             const chatDoc = await chatRef.get();
             if (!chatDoc.exists) {
                 await chatRef.set({
@@ -466,9 +457,6 @@
                 });
             }
         });
-
-        // --- পুরনো সার্চ ফাংশনটা এখন আর দরকার নেই ---
-        // searchInput.addEventListener(...) ফাংশনটা মুছে দেওয়া হলো
 
     </script>
 </body>
