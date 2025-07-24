@@ -53,6 +53,7 @@
             outline: none; border-color: var(--primary-medium);
             box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25);
         }
+        #otp-section { display: none; }
         #main-app-screen { padding-top: 60px; padding-bottom: 70px; }
         #main-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
@@ -114,11 +115,22 @@
 
     <div id="loader-screen" class="screen active"><div class="loader"></div></div>
     
-    <div id="login-screen" class="screen auth-screen">
+    <div id="login-screen" class="screen auth-screen active">
         <div>
             <h1>Welcome to ChatApp</h1>
-            <p>A simple and reliable way to chat.</p>
-            <button id="google-signin-btn" class="btn primary-btn">Sign in with Google</button>
+            <p>Enter your phone number to get started.</p>
+            
+            <div id="phone-auth-section">
+                <input type="tel" id="phone-number-input" class="input-field" placeholder="+91 12345 67890" required />
+                <button id="send-otp-btn" class="btn primary-btn">Send OTP</button>
+                <div id="recaptcha-container" style="margin-top: 20px;"></div>
+            </div>
+
+            <div id="otp-section">
+                <p>Enter the OTP sent to your number.</p>
+                <input type="text" id="otp-input" class="input-field" placeholder="------" maxlength="6" />
+                <button id="verify-otp-btn" class="btn primary-btn">Verify & Continue</button>
+            </div>
         </div>
     </div>
     
@@ -147,7 +159,7 @@
                  <div style="text-align: center; padding: 20px;">
                     <div class="avatar" style="width: 120px; height: 120px; margin: 20px auto; font-size: 4rem;" id="profile-page-avatar"></div>
                     <h2 id="profile-page-name" style="font-size: 1.8rem; margin-bottom: 10px;"></h2>
-                    <p id="profile-page-email" style="color: var(--text-secondary); margin-bottom: 30px;"></p>
+                    <p id="profile-page-phone" style="color: var(--text-secondary); margin-bottom: 30px;"></p>
                     <button id="logout-btn" class="btn" style="background-color: #ff4d4d; color: white; max-width: 200px;">Logout</button>
                 </div>
             </div>
@@ -188,12 +200,13 @@
     <div id="search-overlay" class="screen">
         <header id="main-header" style="position: static; box-shadow: none; border-bottom: 1px solid var(--border-color);">
             <span class="back-arrow" id="search-back-arrow">←</span>
-            <input type="text" id="search-input" placeholder="Search by name..." style="flex-grow: 1; border: none; font-size: 1.1rem; background: transparent; padding: 10px;">
+            <input type="text" id="search-input" placeholder="Search by name or number..." style="flex-grow: 1; border: none; font-size: 1.1rem; background: transparent; padding: 10px;">
         </header>
         <div id="search-results" style="overflow-y: auto; flex-grow: 1;"></div>
     </div>
 
     <script>
+        // --- Firebase Config ---
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
           authDomain: "abhijitchatapp.firebaseapp.com",
@@ -208,8 +221,15 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // --- DOM Elements ---
         const screens = document.querySelectorAll('.screen');
-        const googleBtn = document.getElementById('google-signin-btn');
+        const phoneAuthSection = document.getElementById('phone-auth-section');
+        const phoneInput = document.getElementById('phone-number-input');
+        const sendOtpBtn = document.getElementById('send-otp-btn');
+        const recaptchaContainer = document.getElementById('recaptcha-container');
+        const otpSection = document.getElementById('otp-section');
+        const otpInput = document.getElementById('otp-input');
+        const verifyOtpBtn = document.getElementById('verify-otp-btn');
         const displayNameForm = document.getElementById('display-name-form');
         const displayNameInput = document.getElementById('display-name-input');
         const homeView = document.getElementById('home-view');
@@ -227,16 +247,16 @@
         const searchInput = document.getElementById('search-input');
         const searchResults = document.getElementById('search-results');
         const searchBackArrow = document.getElementById('search-back-arrow');
-        const profileView = document.getElementById('profile-view');
         const logoutBtn = document.getElementById('logout-btn');
         
+        // --- Global State ---
         let currentUser = null;
         let currentChatFriend = null;
         let currentChatId = null;
         let unsubscribeMessages = null;
 
+        // --- Helper Functions ---
         const showScreen = (id) => screens.forEach(s => s.classList.toggle('active', s.id === id));
-        
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
             navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
@@ -244,8 +264,9 @@
                 loadProfileData();
             }
         }
+        
+        // --- Event Listeners ---
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
-
         searchBtn.addEventListener('click', () => searchOverlay.classList.add('active'));
         searchBackArrow.addEventListener('click', () => {
             searchOverlay.classList.remove('active');
@@ -254,16 +275,68 @@
         });
         logoutBtn.addEventListener('click', () => auth.signOut());
 
+        // --- Phone Auth Logic ---
+        window.onload = function() {
+            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+                'size': 'invisible',
+                'callback': (response) => { /* reCAPTCHA solved */ }
+            });
+        };
+
+        sendOtpBtn.addEventListener('click', () => {
+            const phoneNumber = phoneInput.value;
+            if (phoneNumber.length < 10) { alert("Please enter a valid phone number with country code (e.g., +91)."); return; }
+            
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.textContent = 'Sending...';
+
+            auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
+                .then((confirmationResult) => {
+                    window.confirmationResult = confirmationResult;
+                    alert("OTP has been sent!");
+                    phoneAuthSection.style.display = 'none';
+                    otpSection.style.display = 'block';
+                }).catch((error) => {
+                    console.error("Error sending OTP:", error);
+                    alert("Failed to send OTP. Please check the number or refresh the page and try again.");
+                    window.recaptchaVerifier.render().then(widgetId => {
+                        grecaptcha.reset(widgetId);
+                    });
+                }).finally(() => {
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.textContent = 'Send OTP';
+                });
+        });
+
+        verifyOtpBtn.addEventListener('click', () => {
+            const code = otpInput.value;
+            if (!window.confirmationResult) { alert("Please request an OTP first."); return; }
+            if (code.length < 6) { alert("Please enter the 6-digit OTP."); return; }
+
+            verifyOtpBtn.disabled = true;
+            verifyOtpBtn.textContent = 'Verifying...';
+
+            window.confirmationResult.confirm(code).catch((error) => {
+                console.error("Error verifying OTP:", error);
+                alert("Invalid OTP. Please try again.");
+            }).finally(() => {
+                verifyOtpBtn.disabled = false;
+                verifyOtpBtn.textContent = 'Verify & Continue';
+            });
+        });
+
+        // --- Core App Logic ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const userDocRef = db.collection('users').doc(user.uid);
                 const userDocSnap = await userDocRef.get();
                 if (userDocSnap.exists && userDocSnap.data().displayName) {
-                    currentUser = { uid: user.uid, ...userDocSnap.data() };
+                    currentUser = { uid: user.uid, phoneNumber: user.phoneNumber, ...userDocSnap.data() };
                     showScreen('main-app-screen');
                     showMainView('home-view');
                     loadContacts();
                 } else {
+                    await userDocRef.set({ phoneNumber: user.phoneNumber, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
                     showScreen('display-name-screen');
                 }
             } else {
@@ -273,63 +346,62 @@
             document.getElementById('loader-screen').classList.remove('active');
         });
 
-        googleBtn.addEventListener('click', () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).catch(error => console.error("Google Sign-In Error:", error));
-        });
-
         displayNameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const displayName = displayNameInput.value.trim();
             const user = auth.currentUser;
             if (displayName && user) {
                 const userDocRef = db.collection('users').doc(user.uid);
-                await userDocRef.set({
+                await userDocRef.update({
                     displayName: displayName,
-                    email: user.email,
-                    photoURL: user.photoURL,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
+                    photoURL: `https://ui-avatars.com/api/?name=${displayName.replace(/\s/g, '+')}&background=random`
+                });
             }
         });
         
         async function loadContacts() {
             homeView.innerHTML = '';
             const usersRef = db.collection('users');
-            const querySnapshot = await usersRef.where('displayName', '!=', null).get();
-            querySnapshot.forEach((docSnap) => {
-                if (docSnap.id !== currentUser.uid) {
-                    const userData = { uid: docSnap.id, ...docSnap.data() };
-                    const contactElement = document.createElement('div');
-                    contactElement.className = 'contact-list-item';
-                    contactElement.innerHTML = `
-                        <div class="avatar"><img src="${userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`}" alt=""></div>
-                        <div class="item-details"><div class="name">${userData.displayName}</div><div class="subtext">${userData.email || ''}</div></div>`;
-                    contactElement.onclick = () => openChat(userData);
-                    homeView.appendChild(contactElement);
+            try {
+                const querySnapshot = await usersRef.where('displayName', '!=', null).get();
+                if (querySnapshot.empty) {
+                    homeView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">No other users found. Tell your friends to join!</p>';
                 }
-            });
+                querySnapshot.forEach((docSnap) => {
+                    if (docSnap.id !== currentUser.uid) {
+                        const userData = { uid: docSnap.id, ...docSnap.data() };
+                        const contactElement = document.createElement('div');
+                        contactElement.className = 'contact-list-item';
+                        contactElement.innerHTML = `
+                            <div class="avatar"><img src="${userData.photoURL}" alt=""></div>
+                            <div class="item-details">
+                                <div class="name">${userData.displayName}</div>
+                                <div class="subtext">${userData.phoneNumber || ''}</div>
+                            </div>`;
+                        contactElement.onclick = () => openChat(userData);
+                        homeView.appendChild(contactElement);
+                    }
+                });
+            } catch (error) {
+                console.error("Error loading contacts:", error);
+            }
         }
         
         function loadProfileData() {
             if (!currentUser) return;
-            const profileAvatar = document.getElementById('profile-page-avatar');
-            const profileName = document.getElementById('profile-page-name');
-            const profileEmail = document.getElementById('profile-page-email');
-            profileAvatar.innerHTML = `<img src="${currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}&background=random`}" alt="">`;
-            profileName.textContent = currentUser.displayName;
-            profileEmail.textContent = currentUser.email;
+            document.getElementById('profile-page-avatar').innerHTML = `<img src="${currentUser.photoURL}" alt="">`;
+            document.getElementById('profile-page-name').textContent = currentUser.displayName;
+            document.getElementById('profile-page-phone').textContent = currentUser.phoneNumber;
         }
 
+        // --- Chat and Search Logic ---
         function openChat(friendData) {
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
             chatWithName.textContent = friendData.displayName;
-            chatAvatar.innerHTML = `<img src="${friendData.photoURL || `https://ui-avatars.com/api/?name=${friendData.displayName}&background=random`}" alt="">`;
-            
+            chatAvatar.innerHTML = `<img src="${friendData.photoURL}" alt="">`;
             currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
             const chatRef = db.collection('chats').doc(currentChatId);
-
             if (unsubscribeMessages) unsubscribeMessages();
             unsubscribeMessages = chatRef.onSnapshot(docSnap => {
                 messagesWrapper.innerHTML = '';
@@ -353,7 +425,6 @@
             e.preventDefault();
             const text = messageInput.value.trim();
             if (text === '' || !currentChatId) return;
-            
             messageInput.value = '';
             const chatRef = db.collection('chats').doc(currentChatId);
             const newMessage = {
@@ -361,7 +432,6 @@
                 sender: currentUser.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-
             const chatDoc = await chatRef.get();
             if (!chatDoc.exists) {
                 await chatRef.set({
@@ -378,31 +448,33 @@
         searchInput.addEventListener('input', async (e) => {
             const queryText = e.target.value.toLowerCase().trim();
             searchResults.innerHTML = '';
-
-            if (queryText.length < 2) return;
-
+            if (queryText.length < 1) return;
             const usersRef = db.collection('users');
-            const querySnapshot = await usersRef.get();
-            
-            querySnapshot.forEach(docSnap => {
-                const userData = { uid: docSnap.id, ...docSnap.data() };
-                if (userData.displayName && userData.displayName.toLowerCase().includes(queryText) && userData.uid !== currentUser.uid) {
-                    const contactElement = document.createElement('div');
-                    contactElement.className = 'contact-list-item';
-                    contactElement.innerHTML = `
-                        <div class="avatar"><img src="${userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`}" alt=""></div>
-                        <div class="item-details"><div class="name">${userData.displayName}</div></div>`;
-                    contactElement.onclick = () => {
-                        searchOverlay.classList.remove('active');
-                        searchInput.value = '';
-                        searchResults.innerHTML = '';
-                        openChat(userData);
-                    };
-                    searchResults.appendChild(contactElement);
-                }
-            });
+            try {
+                const querySnapshot = await usersRef.get();
+                querySnapshot.forEach(docSnap => {
+                    const userData = { uid: docSnap.id, ...docSnap.data() };
+                    const nameMatch = userData.displayName && userData.displayName.toLowerCase().includes(queryText);
+                    const phoneMatch = userData.phoneNumber && userData.phoneNumber.includes(queryText);
+                    if ((nameMatch || phoneMatch) && userData.uid !== currentUser.uid) {
+                        const contactElement = document.createElement('div');
+                        contactElement.className = 'contact-list-item';
+                        contactElement.innerHTML = `
+                            <div class="avatar"><img src="${userData.photoURL}" alt=""></div>
+                            <div class="item-details"><div class="name">${userData.displayName}</div><div class="subtext">${userData.phoneNumber || ''}</div></div>`;
+                        contactElement.onclick = () => {
+                            searchOverlay.classList.remove('active');
+                            searchInput.value = '';
+                            searchResults.innerHTML = '';
+                            openChat(userData);
+                        };
+                        searchResults.appendChild(contactElement);
+                    }
+                });
+            } catch(error) {
+                console.error("Search error:", error);
+            }
         });
-
     </script>
 </body>
 </html>
