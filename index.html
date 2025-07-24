@@ -4,13 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
-
-    <!-- ম্যাজিক বক্স (এই দুটো লাইন যোগ করা হলো) -->
-    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
-
     <style>
-        /* CSS অপরিবর্তিত আছে */
+        /* CSS কোড অপরিবর্তিত আছে, শুধু QR কোডের জন্য কিছু স্টাইল যোগ করা হয়েছে */
         :root {
             --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
             --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
@@ -58,7 +53,6 @@
             outline: none; border-color: var(--primary-medium);
             box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25);
         }
-        #otp-section { display: none; }
         #main-app-screen { padding-top: 60px; padding-bottom: 70px; }
         #main-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
@@ -66,7 +60,9 @@
             justify-content: space-between; padding: 0 16px; box-shadow: var(--shadow); z-index: 100;
         }
         .app-title { font-size: 1.5rem; font-weight: 600; color: var(--primary-strong); }
-        #search-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
+        /* সার্চ বাটনের জায়গায় QR স্ক্যান বাটন */
+        #scan-qr-btn { background: none; border: none; cursor: pointer; padding: 8px; }
+        #scan-qr-btn svg { width: 26px; height: 26px; fill: var(--text-secondary); }
         .main-view { width: 100%; height: 100%; overflow-y: auto; display: none; background: var(--bg-chat-light); }
         .main-view.active { display: block; }
         .contact-list-item, .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
@@ -90,6 +86,18 @@
         .nav-btn.active svg { fill: var(--primary-medium); }
         .nav-btn.active .nav-text { color: var(--primary-medium); }
         .nav-text { font-size: 0.8rem; margin-top: 4px; }
+        /* QR কোডের স্টাইল */
+        #qr-code-container { margin: 30px auto; padding: 10px; background: white; border-radius: 8px; box-shadow: var(--shadow); }
+        #qr-scanner-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); z-index: 500; display: none;
+            justify-content: center; align-items: center; flex-direction: column;
+        }
+        #close-scanner-btn {
+            position: absolute; top: 20px; right: 20px; font-size: 2rem;
+            color: white; background: none; border: none; cursor: pointer;
+        }
+        /* চ্যাট উইন্ডো স্টাইল অপরিবর্তিত */
         #chat-window {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
             background-color: var(--bg-main); display: flex; flex-direction: column;
@@ -112,6 +120,11 @@
         #send-button svg { width: 24px; height: 24px; fill: white; }
     </style>
     
+    <!-- নতুন QR কোড লাইব্রেরি যোগ করা হলো -->
+    <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+    <script src="https://unpkg.com/html5-qrcode@2.0.9/dist/html5-qrcode.min.js"></script>
+
+    <!-- Firebase স্ক্রিপ্ট অপরিবর্তিত -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
@@ -123,19 +136,8 @@
     <div id="login-screen" class="screen auth-screen active">
         <div>
             <h1>Welcome to ChatApp</h1>
-            <p>Enter your phone number to get started.</p>
-            
-            <div id="phone-auth-section">
-                <input type="tel" id="phone-number-input" class="input-field" placeholder="+91 12345 67890" required />
-                <button id="send-otp-btn" class="btn primary-btn">Send OTP</button>
-                <div id="recaptcha-container" style="margin-top: 20px;"></div>
-            </div>
-
-            <div id="otp-section">
-                <p>Enter the OTP sent to your number.</p>
-                <input type="text" id="otp-input" class="input-field" placeholder="------" maxlength="6" />
-                <button id="verify-otp-btn" class="btn primary-btn">Verify & Continue</button>
-            </div>
+            <p>A simple and reliable way to chat.</p>
+            <button id="google-signin-btn" class="btn primary-btn">Sign in with Google</button>
         </div>
     </div>
     
@@ -153,23 +155,33 @@
     <div id="main-app-screen" class="screen">
         <header id="main-header">
             <h1 class="app-title">ChatApp</h1>
-            <button id="search-btn">🔍</button>
+            <!-- সার্চ বাটনের জায়গায় QR স্ক্যান বাটন -->
+            <button id="scan-qr-btn">
+                <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 21h8v-8h-8v8zm2-6h4v4h-4v-4z"></path></svg>
+            </button>
         </header>
         <main id="main-content">
             <div id="home-view" class="main-view active">
-                <p style="text-align:center; padding:20px; color: var(--text-secondary);">Loading your contacts...</p>
+                <!-- এখানে বন্ধুদের লিস্ট লোড হবে -->
+                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Add friends by scanning their QR code.</p>
             </div>
             <div id="chats-view" class="main-view"></div>
             <div id="profile-view" class="main-view">
                  <div style="text-align: center; padding: 20px;">
                     <div class="avatar" style="width: 120px; height: 120px; margin: 20px auto; font-size: 4rem;" id="profile-page-avatar"></div>
                     <h2 id="profile-page-name" style="font-size: 1.8rem; margin-bottom: 10px;"></h2>
-                    <p id="profile-page-phone" style="color: var(--text-secondary); margin-bottom: 30px;"></p>
-                    <button id="logout-btn" class="btn" style="background-color: #ff4d4d; color: white; max-width: 200px;">Logout</button>
+                    <p id="profile-page-email" style="color: var(--text-secondary); margin-bottom: 30px;"></p>
+                    
+                    <!-- QR কোড এখানে দেখানো হবে -->
+                    <div id="qr-code-container"></div>
+                    <p style="color: var(--text-secondary); margin-top:10px;">Let others scan this code to add you.</p>
+
+                    <button id="logout-btn" class="btn" style="background-color: #ff4d4d; color: white; max-width: 200px; margin-top: 30px;">Logout</button>
                 </div>
             </div>
         </main>
         <nav id="bottom-nav">
+             <!-- পুরনো কোডের মতো একই থাকবে -->
             <button class="nav-btn active" data-view="home-view">
                 <svg viewBox="0 0 24 24"><path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"></path></svg>
                 <span class="nav-text">Home</span>
@@ -185,6 +197,7 @@
         </nav>
     </div>
     
+    <!-- চ্যাট উইন্ডো অপরিবর্তিত -->
     <div id="chat-window">
         <header class="chat-header">
             <span class="back-arrow">←</span>
@@ -202,13 +215,12 @@
         </form>
     </div>
 
-    <div id="search-overlay" class="screen">
-        <header id="main-header" style="position: static; box-shadow: none; border-bottom: 1px solid var(--border-color);">
-            <span class="back-arrow" id="search-back-arrow">←</span>
-            <input type="text" id="search-input" placeholder="Search by name or number..." style="flex-grow: 1; border: none; font-size: 1.1rem; background: transparent; padding: 10px;">
-        </header>
-        <div id="search-results" style="overflow-y: auto; flex-grow: 1;"></div>
+    <!-- সার্চ ওভারলের বদলে QR স্ক্যানার ওভারলে -->
+    <div id="qr-scanner-overlay">
+        <button id="close-scanner-btn">×</button>
+        <div id="qr-reader" style="width: 300px"></div>
     </div>
+
 
     <script>
         // --- Firebase Config অপরিবর্তিত ---
@@ -226,16 +238,9 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- बाकी সব কোড অপরিবর্তিত ---
-        // (তোমার দেওয়া কোডের বাকি অংশ এখানে পেস্ট করা হয়েছে)
+        // --- DOM Elements ---
         const screens = document.querySelectorAll('.screen');
-        const phoneAuthSection = document.getElementById('phone-auth-section');
-        const phoneInput = document.getElementById('phone-number-input');
-        const sendOtpBtn = document.getElementById('send-otp-btn');
-        const recaptchaContainer = document.getElementById('recaptcha-container');
-        const otpSection = document.getElementById('otp-section');
-        const otpInput = document.getElementById('otp-input');
-        const verifyOtpBtn = document.getElementById('verify-otp-btn');
+        const googleBtn = document.getElementById('google-signin-btn');
         const displayNameForm = document.getElementById('display-name-form');
         const displayNameInput = document.getElementById('display-name-input');
         const homeView = document.getElementById('home-view');
@@ -248,97 +253,47 @@
         const backArrow = chatWindow.querySelector('.back-arrow');
         const chatAvatar = document.getElementById('chat-avatar');
         const chatWithName = document.getElementById('chat-with-name');
-        const searchBtn = document.getElementById('search-btn');
-        const searchOverlay = document.getElementById('search-overlay');
-        const searchInput = document.getElementById('search-input');
-        const searchResults = document.getElementById('search-results');
-        const searchBackArrow = document.getElementById('search-back-arrow');
+        
+        // সার্চের বদলে QR কোডের DOM এলিমেন্টস
+        const scanQrBtn = document.getElementById('scan-qr-btn');
+        const qrScannerOverlay = document.getElementById('qr-scanner-overlay');
+        const closeScannerBtn = document.getElementById('close-scanner-btn');
+
         const logoutBtn = document.getElementById('logout-btn');
         
+        // --- গ্লোবাল ভ্যারিয়েবল অপরিবর্তিত ---
         let currentUser = null;
         let currentChatFriend = null;
         let currentChatId = null;
         let unsubscribeMessages = null;
 
+        // --- Helper ফাংশন অপরিবর্তিত ---
         const showScreen = (id) => screens.forEach(s => s.classList.toggle('active', s.id === id));
+        
+        // --- showMainView ফাংশন আপডেট করা হলো ---
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
             navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
             if (viewId === 'profile-view') {
-                loadProfileData();
+                loadProfileData(); // প্রোফাইল পেজ লোড করার সময় QR কোড জেনারেট হবে
             }
         }
-        
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
-        searchBtn.addEventListener('click', () => searchOverlay.classList.add('active'));
-        searchBackArrow.addEventListener('click', () => {
-            searchOverlay.classList.remove('active');
-            searchInput.value = '';
-            searchResults.innerHTML = '';
-        });
+
+        // --- লগ-আউট ফাংশন অপরিবর্তিত ---
         logoutBtn.addEventListener('click', () => auth.signOut());
 
-        function renderRecaptcha() {
-            window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-                'size': 'invisible',
-                'callback': (response) => {}
-            });
-            window.recaptchaVerifier.render();
-        }
-
-        sendOtpBtn.addEventListener('click', () => {
-            const phoneNumber = phoneInput.value;
-            if (!phoneNumber.startsWith('+')) {
-                alert("Please enter a valid phone number with country code (e.g., +911234567890).");
-                return;
-            }
-            
-            sendOtpBtn.disabled = true;
-            sendOtpBtn.textContent = 'Sending...';
-
-            auth.signInWithPhoneNumber(phoneNumber, window.recaptchaVerifier)
-                .then((confirmationResult) => {
-                    window.confirmationResult = confirmationResult;
-                    alert("OTP has been sent!");
-                    phoneAuthSection.style.display = 'none';
-                    otpSection.style.display = 'block';
-                }).catch((error) => {
-                    console.error("Error sending OTP:", error);
-                    alert("Failed to send OTP. Please check the number or refresh the page and try again.");
-                }).finally(() => {
-                    sendOtpBtn.disabled = false;
-                    sendOtpBtn.textContent = 'Send OTP';
-                });
-        });
-
-        verifyOtpBtn.addEventListener('click', () => {
-            const code = otpInput.value;
-            if (!window.confirmationResult) { alert("Please request an OTP first."); return; }
-            if (code.length < 6) { alert("Please enter the 6-digit OTP."); return; }
-
-            verifyOtpBtn.disabled = true;
-            verifyOtpBtn.textContent = 'Verifying...';
-
-            window.confirmationResult.confirm(code).catch((error) => {
-                console.error("Error verifying OTP:", error);
-                alert("Invalid OTP. Please try again.");
-            }).finally(() => {
-                verifyOtpBtn.disabled = false;
-                verifyOtpBtn.textContent = 'Verify & Continue';
-            });
-        });
-
+        // --- মূল অথেন্টিকেশন লজিক অপরিবর্তিত ---
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const userDocRef = db.collection('users').doc(user.uid);
                 const userDocSnap = await userDocRef.get();
                 if (userDocSnap.exists && userDocSnap.data().displayName) {
-                    currentUser = { uid: user.uid, phoneNumber: user.phoneNumber, ...userDocSnap.data() };
+                    currentUser = { uid: user.uid, ...userDocSnap.data() };
                     showScreen('main-app-screen');
                     showMainView('home-view');
-                    loadContacts();
+                    // loadContacts() এর বদলে এখন loadFriends() বা loadChats() কল করা যেতে পারে
                 } else {
-                    await userDocRef.set({ phoneNumber: user.phoneNumber, createdAt: firebase.firestore.FieldValue.serverTimestamp() }, { merge: true });
                     showScreen('display-name-screen');
                 }
             } else {
@@ -348,61 +303,125 @@
             document.getElementById('loader-screen').classList.remove('active');
         });
 
+        googleBtn.addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => console.error("Google Sign-In Error:", error));
+        });
+
         displayNameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const displayName = displayNameInput.value.trim();
             const user = auth.currentUser;
             if (displayName && user) {
                 const userDocRef = db.collection('users').doc(user.uid);
-                await userDocRef.update({
+                await userDocRef.set({
                     displayName: displayName,
-                    photoURL: `https://ui-avatars.com/api/?name=${displayName.replace(/\s/g, '+')}&background=random`
-                });
+                    email: user.email,
+                    photoURL: user.photoURL || `https://ui-avatars.com/api/?name=${displayName.replace(/\s/g, '+')}&background=random`,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
             }
         });
         
-        async function loadContacts() {
-            homeView.innerHTML = '';
-            const usersRef = db.collection('users');
+        // --- loadContacts ফাংশন এখন আর ব্যবহার হবে না, তাই এটি মুছে দেওয়া যেতে পারে বা খালি রাখা যেতে পারে ---
+        
+        // --- প্রোফাইল পেজে ডেটা দেখানোর জন্য নতুন ফাংশন ---
+        function loadProfileData() {
+            if (!currentUser) return;
+            const profileAvatar = document.getElementById('profile-page-avatar');
+            const profileName = document.getElementById('profile-page-name');
+            const profileEmail = document.getElementById('profile-page-email');
+            profileAvatar.innerHTML = `<img src="${currentUser.photoURL || `https://ui-avatars.com/api/?name=${currentUser.displayName}&background=random`}" alt="">`;
+            profileName.textContent = currentUser.displayName;
+            profileEmail.textContent = currentUser.email;
+
+            // QR কোড জেনারেট করা
+            generateQrCode(currentUser.uid);
+        }
+
+        // --- QR কোড জেনারেট এবং স্ক্যান করার নতুন লজিক ---
+        function generateQrCode(uid) {
+            const qrContainer = document.getElementById("qr-code-container");
+            if (!qrContainer) return; // যদি এলিমেন্ট না পাওয়া যায়
+            qrContainer.innerHTML = ""; // পুরনো QR কোড মুছে ফেলা
+            const qrCode = new QRCodeStyling({
+                width: 220,
+                height: 220,
+                type: "svg",
+                data: `chatapp_user_id:${uid}`, // একটা ইউনিক প্রিফিক্স ব্যবহার করা হলো
+                dotsOptions: { color: "#005c4b", type: "rounded" },
+                backgroundOptions: { color: "#ffffff" },
+                cornersSquareOptions: { type: "extra-rounded" }
+            });
+            qrCode.append(qrContainer);
+        }
+
+        scanQrBtn.addEventListener('click', () => {
+            qrScannerOverlay.style.display = 'flex';
+            startQrScanner();
+        });
+
+        closeScannerBtn.addEventListener('click', () => {
+            stopQrScanner();
+        });
+
+        let html5QrCode;
+        function startQrScanner() {
             try {
-                const querySnapshot = await usersRef.where('displayName', '!=', null).get();
-                if (querySnapshot.docs.length <= 1) { 
-                    homeView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">No other users found. Tell your friends to join!</p>';
-                }
-                querySnapshot.forEach((docSnap) => {
-                    if (docSnap.id !== currentUser.uid) {
-                        const userData = { uid: docSnap.id, ...docSnap.data() };
-                        const contactElement = document.createElement('div');
-                        contactElement.className = 'contact-list-item';
-                        contactElement.innerHTML = `
-                            <div class="avatar"><img src="${userData.photoURL}" alt=""></div>
-                            <div class="item-details">
-                                <div class="name">${userData.displayName}</div>
-                                <div class="subtext">${userData.phoneNumber || ''}</div>
-                            </div>`;
-                        contactElement.onclick = () => openChat(userData);
-                        homeView.appendChild(contactElement);
-                    }
+                html5QrCode = new Html5Qrcode("qr-reader");
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    async (decodedText, decodedResult) => {
+                        stopQrScanner();
+                        if (decodedText.startsWith("chatapp_user_id:")) {
+                            const friendUid = decodedText.split(":")[1];
+                            if(friendUid === currentUser.uid) {
+                                alert("You cannot add yourself!");
+                                return;
+                            }
+                            const userDocRef = db.collection('users').doc(friendUid);
+                            const userDocSnap = await userDocRef.get();
+                            if (userDocSnap.exists) {
+                                const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
+                                openChat(friendData);
+                            } else {
+                                alert("User not found!");
+                            }
+                        } else {
+                            alert("Invalid QR Code.");
+                        }
+                    },
+                    (errorMessage) => {}
+                ).catch((err) => {
+                    alert("Could not start QR scanner. Please grant camera permission.");
                 });
-            } catch (error) {
-                console.error("Error loading contacts:", error);
+            } catch(e) {
+                console.error(e);
+                alert("Scanner failed to start.");
             }
         }
         
-        function loadProfileData() {
-            if (!currentUser) return;
-            document.getElementById('profile-page-avatar').innerHTML = `<img src="${currentUser.photoURL}" alt="">`;
-            document.getElementById('profile-page-name').textContent = currentUser.displayName;
-            document.getElementById('profile-page-phone').textContent = currentUser.phoneNumber;
+        function stopQrScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    qrScannerOverlay.style.display = 'none';
+                }).catch(err => console.error("Failed to stop scanner", err));
+            } else {
+                qrScannerOverlay.style.display = 'none';
+            }
         }
-
+        
+        // --- চ্যাট করার সব ফাংশন অপরিবর্তিত ---
         function openChat(friendData) {
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
             chatWithName.textContent = friendData.displayName;
-            chatAvatar.innerHTML = `<img src="${friendData.photoURL}" alt="">`;
+            chatAvatar.innerHTML = `<img src="${friendData.photoURL || `https://ui-avatars.com/api/?name=${friendData.displayName}&background=random`}" alt="">`;
+            
             currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
             const chatRef = db.collection('chats').doc(currentChatId);
+
             if (unsubscribeMessages) unsubscribeMessages();
             unsubscribeMessages = chatRef.onSnapshot(docSnap => {
                 messagesWrapper.innerHTML = '';
@@ -426,6 +445,7 @@
             e.preventDefault();
             const text = messageInput.value.trim();
             if (text === '' || !currentChatId) return;
+            
             messageInput.value = '';
             const chatRef = db.collection('chats').doc(currentChatId);
             const newMessage = {
@@ -433,6 +453,7 @@
                 sender: currentUser.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
+
             const chatDoc = await chatRef.get();
             if (!chatDoc.exists) {
                 await chatRef.set({
@@ -446,40 +467,9 @@
             }
         });
 
-        searchInput.addEventListener('input', async (e) => {
-            const queryText = e.target.value.toLowerCase().trim();
-            searchResults.innerHTML = '';
-            if (queryText.length < 1) return;
-            const usersRef = db.collection('users');
-            try {
-                const querySnapshot = await usersRef.get();
-                querySnapshot.forEach(docSnap => {
-                    const userData = { uid: docSnap.id, ...docSnap.data() };
-                    const nameMatch = userData.displayName && userData.displayName.toLowerCase().includes(queryText);
-                    const phoneMatch = userData.phoneNumber && userData.phoneNumber.includes(queryText);
-                    if ((nameMatch || phoneMatch) && userData.uid !== currentUser.uid) {
-                        const contactElement = document.createElement('div');
-                        contactElement.className = 'contact-list-item';
-                        contactElement.innerHTML = `
-                            <div class="avatar"><img src="${userData.photoURL}" alt=""></div>
-                            <div class.item-details"><div class="name">${userData.displayName}</div><div class="subtext">${userData.phoneNumber || ''}</div></div>`;
-                        contactElement.onclick = () => {
-                            searchOverlay.classList.remove('active');
-                            searchInput.value = '';
-                            searchResults.innerHTML = '';
-                            openChat(userData);
-                        };
-                        searchResults.appendChild(contactElement);
-                    }
-                });
-            } catch(error) {
-                console.error("Search error:", error);
-            }
-        });
-        
-        window.onload = function() {
-            renderRecaptcha();
-        };
+        // --- পুরনো সার্চ ফাংশনটা এখন আর দরকার নেই ---
+        // searchInput.addEventListener(...) ফাংশনটা মুছে দেওয়া হলো
+
     </script>
 </body>
 </html>
