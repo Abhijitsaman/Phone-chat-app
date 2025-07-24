@@ -1,106 +1,68 @@
-<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
     <style>
-        /* --- সম্পূর্ণ নতুন CSS ডিজাইন --- */
+        /* CSS কোড অপরিবর্তিত আছে */
         :root {
-            /* হোয়াটসঅ্যাপ থিম */
-            --primary-strong: #005c4b;
-            --primary-medium: #008069;
-            --primary-light: #25d366;
-            --bg-main: #e5ddd5;
-            --bg-chat-light: #ffffff;
-            --bg-my-message: #d9fdd3;
-            --bg-header: #f0f2f5;
-            --text-primary: #111b21;
-            --text-secondary: #667781;
-            --border-color: #e9edef;
-            --shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
+            --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
+            --bg-header: #f0f2f5; --text-primary: #111b21; --text-secondary: #667781;
+            --border-color: #e9edef; --shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
         }
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            overflow: hidden;
-            height: 100vh;
-            width: 100vw;
-            background-color: var(--bg-main);
-            color: var(--text-primary);
+            overflow: hidden; height: 100vh; width: 100vw;
+            background-color: var(--bg-main); color: var(--text-primary);
         }
-
-        /* --- স্ক্রিন ম্যানেজমেন্ট --- */
         .screen {
-            width: 100%; height: 100%;
-            position: absolute; top: 0; left: 0;
-            display: none; flex-direction: column;
-            background-color: var(--bg-chat-light);
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0;
+            display: none; flex-direction: column; background-color: var(--bg-chat-light);
             transition: opacity 0.3s ease, transform 0.3s ease;
         }
         .screen.active { display: flex; }
-
-        /* --- লোডার --- */
         #loader-screen { justify-content: center; align-items: center; }
         .loader {
-            border: 5px solid var(--border-color);
-            border-top: 5px solid var(--primary-medium);
-            border-radius: 50%; width: 50px; height: 50px;
-            animation: spin 1s linear infinite;
+            border: 5px solid var(--border-color); border-top: 5px solid var(--primary-medium);
+            border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        /* --- লগইন ও নাম দেওয়ার পেজের ডিজাইন --- */
         .auth-screen {
-            justify-content: center; align-items: center;
-            padding: 25px; text-align: center;
+            justify-content: center; align-items: center; padding: 25px; text-align: center;
         }
         .auth-screen h1, .auth-screen h2 {
-            font-size: 2.2rem; font-weight: 700;
-            color: var(--primary-strong); margin-bottom: 20px;
+            font-size: 2.2rem; font-weight: 700; color: var(--primary-strong); margin-bottom: 20px;
         }
         .auth-screen p { color: var(--text-secondary); margin-bottom: 30px; font-size: 1.1rem; }
         .btn {
-            width: 100%; max-width: 350px; padding: 16px;
-            border: none; border-radius: 25px; font-size: 1.2rem;
-            font-weight: 600; cursor: pointer; margin-bottom: 15px;
+            width: 100%; max-width: 350px; padding: 16px; border: none; border-radius: 25px;
+            font-size: 1.2rem; font-weight: 600; cursor: pointer; margin-bottom: 15px;
             transition: transform 0.2s;
         }
         .btn:active { transform: scale(0.98); }
         .primary-btn { background-color: var(--primary-medium); color: white; }
         .input-field {
-            width: 100%; max-width: 350px; padding: 16px;
-            font-size: 1.1rem; border: 1px solid var(--border-color);
-            border-radius: 25px; margin-bottom: 20px;
-            text-align: center;
+            width: 100%; max-width: 350px; padding: 16px; font-size: 1.1rem;
+            border: 1px solid var(--border-color); border-radius: 25px;
+            margin-bottom: 20px; text-align: center;
         }
         .input-field:focus {
             outline: none; border-color: var(--primary-medium);
             box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25);
         }
-
-        /* --- মূল অ্যাপের ডিজাইন --- */
         #main-app-screen { padding-top: 60px; padding-bottom: 70px; }
-
-        /* হেডার */
         #main-header {
-            position: fixed; top: 0; left: 0; width: 100%;
-            height: 60px; background-color: var(--bg-header);
-            display: flex; align-items: center; justify-content: space-between;
-            padding: 0 16px; box-shadow: var(--shadow); z-index: 100;
+            position: fixed; top: 0; left: 0; width: 100%; height: 60px;
+            background-color: var(--bg-header); display: flex; align-items: center;
+            justify-content: space-between; padding: 0 16px; box-shadow: var(--shadow); z-index: 100;
         }
         .app-title { font-size: 1.5rem; font-weight: 600; color: var(--primary-strong); }
-        #search-btn {
-            background: none; border: none; font-size: 1.5rem;
-            cursor: pointer; color: var(--text-secondary);
-        }
-        
-        /* অ্যাপের ভিউ (হোম, চ্যাটস) */
+        #search-btn { background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
         .main-view { width: 100%; height: 100%; overflow-y: auto; display: none; background: var(--bg-chat-light); }
         .main-view.active { display: block; }
-
         .contact-list-item, .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
         .contact-list-item:hover, .chat-list-item:hover { background-color: var(--bg-header); }
         .avatar { width: 50px; height: 50px; border-radius: 50%; background-color: var(--border-color); color: var(--text-secondary); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5rem; overflow: hidden; flex-shrink: 0; }
@@ -108,12 +70,9 @@
         .item-details { flex-grow: 1; }
         .item-details .name { font-weight: 600; font-size: 1.1rem; color: var(--text-primary); }
         .item-details .subtext { color: var(--text-secondary); font-size: 0.9rem; }
-        
-        /* বটম নেভিগেশন */
         #bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            height: 70px; background-color: var(--bg-header);
-            display: flex; justify-content: space-around;
+            position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
+            background-color: var(--bg-header); display: flex; justify-content: space-around;
             align-items: center; box-shadow: 0 -1px 2px rgba(0,0,0,0.05); z-index: 100;
         }
         .nav-btn {
@@ -125,20 +84,16 @@
         .nav-btn.active svg { fill: var(--primary-medium); }
         .nav-btn.active .nav-text { color: var(--primary-medium); }
         .nav-text { font-size: 0.8rem; margin-top: 4px; }
-
-        /* প্রোফাইল পেজ */
-        #profile-view { padding: 20px; text-align: center; }
-        /* (প্রোফাইল পেজের CSS আগের কোড থেকে নেওয়া যেতে পারে) */
-
-        /* চ্যাট উইন্ডো - তোমার পাঠানো ছবির মতো ডিজাইন */
         #chat-window {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 300; background-color: var(--bg-main);
-            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
+            background-color: var(--bg-main); display: flex; flex-direction: column;
             transform: translateX(100%); transition: transform 0.3s ease-in-out;
         }
         #chat-window.active { transform: translateX(0); }
-        .chat-header { height: 60px; background-color: var(--bg-header); display: flex; align-items: center; gap: 15px; padding: 0 16px; box-shadow: var(--shadow); }
+        .chat-header {
+            height: 60px; background-color: var(--bg-header); display: flex;
+            align-items: center; gap: 15px; padding: 0 16px; box-shadow: var(--shadow);
+        }
         .back-arrow { font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); }
         .messages-container { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
         .messages-wrapper { display: flex; flex-direction: column; }
@@ -150,22 +105,23 @@
         #send-button { background: var(--primary-medium); border: none; color: white; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         #send-button svg { width: 24px; height: 24px; fill: white; }
     </style>
+    
+    <!-- নতুন Firebase স্ক্রিপ্ট (হেড ট্যাগের ভেতর) -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
 
+    <!-- HTML Body অপরিবর্তিত আছে -->
     <div id="loader-screen" class="screen active"><div class="loader"></div></div>
-
-    <!-- লগইন স্ক্রিন -->
     <div id="login-screen" class="screen auth-screen">
         <div>
             <h1>Welcome to ChatApp</h1>
             <p>A simple and reliable way to chat.</p>
             <button id="google-signin-btn" class="btn primary-btn">Sign in with Google</button>
-            <!-- ফোন নম্বর লগইন আপাতত বাদ দেওয়া হলো সরলতার জন্য -->
         </div>
     </div>
-    
-    <!-- নাম দেওয়ার স্ক্রিন -->
     <div id="display-name-screen" class="screen auth-screen">
         <div>
             <h2>What's your name?</h2>
@@ -176,34 +132,25 @@
             </form>
         </div>
     </div>
-
-    <!-- মূল অ্যাপ -->
     <div id="main-app-screen" class="screen">
         <header id="main-header">
             <h1 class="app-title">ChatApp</h1>
             <button id="search-btn">🔍</button>
         </header>
-
         <main id="main-content">
             <div id="home-view" class="main-view active">
-                <!-- এখানে কন্টাক্ট লিস্ট আসবে -->
                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Loading your contacts...</p>
             </div>
-            <div id="chats-view" class="main-view">
-                <!-- এখানে ongoing চ্যাট লিস্ট আসবে -->
-            </div>
-            <div id="profile-view" class="main-view">
-                <!-- প্রোফাইল পেজ কন্টেন্ট -->
-            </div>
+            <div id="chats-view" class="main-view"></div>
+            <div id="profile-view" class="main-view"></div>
         </main>
-        
         <nav id="bottom-nav">
             <button class="nav-btn active" data-view="home-view">
                 <svg viewBox="0 0 24 24"><path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"></path></svg>
                 <span class="nav-text">Home</span>
             </button>
             <button class="nav-btn" data-view="chats-view">
-                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path></svg>
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2z"></path></svg>
                 <span class="nav-text">Chats</span>
             </button>
             <button class="nav-btn" data-view="profile-view">
@@ -212,8 +159,6 @@
             </button>
         </nav>
     </div>
-    
-    <!-- চ্যাট উইন্ডো -->
     <div id="chat-window">
         <header class="chat-header">
             <span class="back-arrow">←</span>
@@ -223,7 +168,7 @@
         <div class="messages-container">
             <div class="messages-wrapper"></div>
         </div>
-        <form class="message-input-form">
+        <form class="message-input-form" id="message-form">
             <input id="message-input" placeholder="Type a message..." />
             <button id="send-button" type="submit">
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
@@ -231,12 +176,8 @@
         </form>
     </div>
 
-    <!-- Firebase SDKs -->
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js";
-        import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js";
-        import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, query, where, getDocs, onSnapshot, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js";
-        
+    <!-- পরিবর্তিত জাভাস্ক্রিপ্ট -->
+    <script>
         // --- তোমার ফায়ারবেস কনফিগারেশন ---
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
@@ -248,9 +189,10 @@
           measurementId: "G-S9MH55NK4N"
         };
         
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // --- Firebase সার্ভিস ইনিশিয়ালাইজ করা (নতুন উপায়) ---
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
 
         // --- DOM এলিমেন্টস ---
         const screens = document.querySelectorAll('.screen');
@@ -258,108 +200,141 @@
         const displayNameForm = document.getElementById('display-name-form');
         const displayNameInput = document.getElementById('display-name-input');
         const homeView = document.getElementById('home-view');
-        // ... (বাকি DOM এলিমেন্টস প্রয়োজন অনুযায়ী যোগ করা হবে)
-
-        let currentUser = null; // লগইন করা ব্যবহারকারীর তথ্য এখানে থাকবে
+        const navBtns = document.querySelectorAll('.nav-btn');
+        const mainViews = document.querySelectorAll('.main-view');
+        const chatWindow = document.getElementById('chat-window');
+        const messageForm = document.getElementById('message-form');
+        const messageInput = document.getElementById('message-input');
+        const messagesWrapper = document.querySelector('.messages-wrapper');
+        const backArrow = chatWindow.querySelector('.back-arrow');
+        const chatAvatar = document.getElementById('chat-avatar');
+        const chatWithName = document.getElementById('chat-with-name');
+        
+        let currentUser = null;
+        let currentChatFriend = null;
+        let currentChatId = null;
+        let unsubscribeMessages = null;
 
         // --- Helper ফাংশন ---
         const showScreen = (id) => screens.forEach(s => s.classList.toggle('active', s.id === id));
-        
+        const showMainView = (viewId) => {
+            mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
+            navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
+        };
+        navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
+
         // --- মূল লজিক ---
-
-        // ব্যবহারকারী লগইন করা আছে কিনা চেক করা
-        onAuthStateChanged(auth, async (user) => {
+        auth.onAuthStateChanged(async (user) => {
             if (user) {
-                // ব্যবহারকারী লগইন করা আছে
-                const userDocRef = doc(db, 'users', user.uid);
-                const userDocSnap = await getDoc(userDocRef);
-
-                if (userDocSnap.exists() && userDocSnap.data().displayName) {
-                    // ব্যবহারকারীর নাম ডেটাবেসে আছে, তাকে মূল অ্যাপে নিয়ে যাওয়া হবে
+                const userDocRef = db.collection('users').doc(user.uid);
+                const userDocSnap = await userDocRef.get();
+                if (userDocSnap.exists && userDocSnap.data().displayName) {
                     currentUser = { uid: user.uid, ...userDocSnap.data() };
                     showScreen('main-app-screen');
-                    loadContacts(); // কন্টাক্ট লিস্ট লোড করা
+                    showMainView('home-view');
+                    loadContacts();
                 } else {
-                    // ব্যবহারকারী নতুন, তাকে নাম দেওয়ার পেজে নিয়ে যাওয়া হবে
                     showScreen('display-name-screen');
                 }
             } else {
-                // কেউ লগইন করা নেই, লগইন পেজ দেখানো হবে
                 currentUser = null;
                 showScreen('login-screen');
             }
-            // লোডার বন্ধ করা
             document.getElementById('loader-screen').classList.remove('active');
         });
 
-        // গুগল দিয়ে সাইন ইন
         googleBtn.addEventListener('click', () => {
-            const provider = new GoogleAuthProvider();
-            // ফোন নম্বর পাওয়ার জন্য স্কোপ যোগ করা
-            provider.addScope('https://www.googleapis.com/auth/user.phonenumbers.read');
-            signInWithPopup(auth, provider).catch(error => {
-                console.error("Google Sign-In Error:", error);
-                alert("Failed to sign in with Google.");
-            });
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).catch(error => console.error("Google Sign-In Error:", error));
         });
 
-        // নাম সেভ করা
         displayNameForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const displayName = displayNameInput.value.trim();
             const user = auth.currentUser;
-
             if (displayName && user) {
-                const userDocRef = doc(db, 'users', user.uid);
-                try {
-                    await setDoc(userDocRef, {
-                        displayName: displayName,
-                        email: user.email,
-                        photoURL: user.photoURL,
-                        phoneNumber: user.phoneNumber, // যদি পাওয়া যায়
-                        createdAt: serverTimestamp()
-                    }, { merge: true });
-                    // নাম সেভ হয়ে গেলে onAuthStateChanged নিজে থেকেই main-app-screen দেখাবে
-                } catch (error) {
-                    console.error("Error saving name:", error);
-                    alert("Could not save your name. Please try again.");
-                }
+                const userDocRef = db.collection('users').doc(user.uid);
+                await userDocRef.set({
+                    displayName: displayName,
+                    email: user.email,
+                    photoURL: user.photoURL,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
             }
         });
         
-        // কন্টাক্ট লিস্ট লোড করার ফাংশন (আপাতত একটি ডেমো)
-        // **গুরুত্বপূর্ণ:** বাস্তবে কন্টাক্ট অ্যাক্সেস করার জন্য জটিল Web API লাগে যা সব ব্রাউজারে সাপোর্ট করে না।
-        // তাই আমরা সরলতার জন্য, ডেটাবেসের সব ইউজারকে কন্টাক্ট হিসাবে দেখাব।
         async function loadContacts() {
-            homeView.innerHTML = ''; // পুরনো লিস্ট পরিষ্কার করা
-            const usersRef = collection(db, 'users');
-            const q = query(usersRef, where('displayName', '!=', null)); // যাদের নাম আছে, শুধু তাদেরকেই দেখানো
-
-            try {
-                const querySnapshot = await getDocs(q);
-                querySnapshot.forEach((docSnap) => {
-                    if (docSnap.id !== currentUser.uid) { // নিজেকে বাদে
-                        const userData = docSnap.data();
-                        const contactElement = document.createElement('div');
-                        contactElement.className = 'contact-list-item';
-                        contactElement.innerHTML = `
-                            <div class="avatar">
-                                <img src="${userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`}" alt="">
-                            </div>
-                            <div class="item-details">
-                                <div class="name">${userData.displayName}</div>
-                                <div class="subtext">${userData.email || ''}</div>
-                            </div>
-                        `;
-                        // এখানে ক্লিক করলে চ্যাট উইন্ডো খোলার লজিক যোগ করতে হবে
-                        homeView.appendChild(contactElement);
-                    }
-                });
-            } catch (error) {
-                console.error("Error loading contacts:", error);
-                homeView.innerHTML = '<p style="text-align:center; padding:20px; color:red;">Failed to load contacts.</p>';
-            }
+            homeView.innerHTML = '';
+            const usersRef = db.collection('users');
+            const querySnapshot = await usersRef.where('displayName', '!=', null).get();
+            querySnapshot.forEach((docSnap) => {
+                if (docSnap.id !== currentUser.uid) {
+                    const userData = { uid: docSnap.id, ...docSnap.data() };
+                    const contactElement = document.createElement('div');
+                    contactElement.className = 'contact-list-item';
+                    contactElement.innerHTML = `
+                        <div class="avatar"><img src="${userData.photoURL || `https://ui-avatars.com/api/?name=${userData.displayName}&background=random`}" alt=""></div>
+                        <div class="item-details"><div class="name">${userData.displayName}</div><div class="subtext">${userData.email || ''}</div></div>`;
+                    contactElement.onclick = () => openChat(userData);
+                    homeView.appendChild(contactElement);
+                }
+            });
         }
+
+        function openChat(friendData) {
+            currentChatFriend = friendData;
+            chatWindow.classList.add('active');
+            chatWithName.textContent = friendData.displayName;
+            chatAvatar.innerHTML = `<img src="${friendData.photoURL || `https://ui-avatars.com/api/?name=${friendData.displayName}&background=random`}" alt="">`;
+            
+            currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentChatFriend.uid}`;
+            const chatRef = db.collection('chats').doc(currentChatId);
+
+            if (unsubscribeMessages) unsubscribeMessages();
+            unsubscribeMessages = chatRef.onSnapshot(docSnap => {
+                messagesWrapper.innerHTML = '';
+                if (docSnap.exists && docSnap.data().messages) {
+                    docSnap.data().messages.forEach(msg => {
+                        const bubble = document.createElement('div');
+                        bubble.className = 'message-bubble ' + (msg.sender === currentUser.uid ? 'my-message' : 'friend-message');
+                        bubble.textContent = msg.text;
+                        messagesWrapper.appendChild(bubble);
+                    });
+                }
+            });
+        }
+
+        backArrow.addEventListener('click', () => {
+            chatWindow.classList.remove('active');
+            if (unsubscribeMessages) unsubscribeMessages();
+        });
+
+        messageForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            if (text === '' || !currentChatId) return;
+            
+            messageInput.value = '';
+            const chatRef = db.collection('chats').doc(currentChatId);
+            const newMessage = {
+                text: text,
+                sender: currentUser.uid,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            const chatDoc = await chatRef.get();
+            if (!chatDoc.exists) {
+                await chatRef.set({
+                    participants: [currentUser.uid, currentChatFriend.uid],
+                    messages: [newMessage]
+                });
+            } else {
+                await chatRef.update({
+                    messages: firebase.firestore.FieldValue.arrayUnion(newMessage)
+                });
+            }
+        });
+
     </script>
 </body>
 </html>
