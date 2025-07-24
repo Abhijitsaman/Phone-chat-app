@@ -60,7 +60,6 @@
             justify-content: space-between; padding: 0 16px; box-shadow: var(--shadow); z-index: 100;
         }
         .app-title { font-size: 1.5rem; font-weight: 600; color: var(--primary-strong); }
-        /* সার্চ বাটনের জায়গায় QR স্ক্যান বাটন */
         #scan-qr-btn { background: none; border: none; cursor: pointer; padding: 8px; }
         #scan-qr-btn svg { width: 26px; height: 26px; fill: var(--text-secondary); }
         .main-view { width: 100%; height: 100%; overflow-y: auto; display: none; background: var(--bg-chat-light); }
@@ -86,7 +85,6 @@
         .nav-btn.active svg { fill: var(--primary-medium); }
         .nav-btn.active .nav-text { color: var(--primary-medium); }
         .nav-text { font-size: 0.8rem; margin-top: 4px; }
-        /* QR কোডের স্টাইল */
         #qr-code-container { margin: 30px auto; padding: 10px; background: white; border-radius: 8px; box-shadow: var(--shadow); }
         #qr-scanner-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
@@ -97,7 +95,6 @@
             position: absolute; top: 20px; right: 20px; font-size: 2rem;
             color: white; background: none; border: none; cursor: pointer;
         }
-        /* চ্যাট উইন্ডো স্টাইল অপরিবর্তিত */
         #chat-window {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
             background-color: var(--bg-main); display: flex; flex-direction: column;
@@ -120,20 +117,16 @@
         #send-button svg { width: 24px; height: 24px; fill: white; }
     </style>
     
-    <!-- QR কোড লাইব্রেরি অপরিবর্তিত -->
     <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
     <script src="https://unpkg.com/html5-qrcode@2.0.9/dist/html5-qrcode.min.js"></script>
-
-    <!-- Firebase স্ক্রিপ্ট অপরিবর্তিত -->
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     
-    <!-- HTML Body অপরিবর্তিত -->
     <div id="loader-screen" class="screen active"><div class="loader"></div></div>
-    <div id="login-screen" class="screen auth-screen active">
+    <div id="login-screen" class="screen auth-screen">
         <div>
             <h1>Welcome to ChatApp</h1>
             <p>A simple and reliable way to chat.</p>
@@ -252,7 +245,13 @@
         let unsubscribeMessages = null;
 
         // --- Helper ফাংশন অপরিবর্তিত ---
-        const showScreen = (id) => screens.forEach(s => s.classList.toggle('active', s.id === id));
+        const showScreen = (id) => {
+            screens.forEach(s => s.classList.remove('active'));
+            const screenToShow = document.getElementById(id);
+            if (screenToShow) {
+                screenToShow.classList.add('active');
+            }
+        };
         
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
@@ -304,7 +303,7 @@
             }
         });
         
-        // --- প্রোফাইল পেজে ডেটা দেখানোর জন্য নতুন ফাংশন অপরিবর্তিত ---
+        // --- প্রোফাইল পেজে ডেটা দেখানোর ফাংশন অপরিবর্তিত ---
         function loadProfileData() {
             if (!currentUser) return;
             const profileAvatar = document.getElementById('profile-page-avatar');
@@ -344,7 +343,7 @@
 
         let html5QrCode;
         
-        // --- startQrScanner ফাংশনটি ডিবাগিং Alert মেসেজ সহ আপডেট করা হলো ---
+        // --- startQrScanner ফাংশন অপরিবর্তিত ---
         function startQrScanner() {
             try {
                 html5QrCode = new Html5Qrcode("qr-reader");
@@ -352,43 +351,28 @@
                     { facingMode: "environment" },
                     { fps: 10, qrbox: { width: 250, height: 250 } },
                     async (decodedText, decodedResult) => {
-                        // --- ডিবাগিং শুরু ---
                         stopQrScanner();
-                        alert(`QR Code Scanned! Data: ${decodedText}`);
-
                         if (decodedText.startsWith("chatapp_user_id:")) {
                             const friendUid = decodedText.split(":")[1];
-                            alert(`Friend's UID found: ${friendUid}`);
-
                             if(friendUid === currentUser.uid) {
                                 alert("You cannot add yourself!");
                                 return;
                             }
-                            
-                            try {
-                                alert("Searching for friend in the database...");
-                                const userDocRef = db.collection('users').doc(friendUid);
-                                const userDocSnap = await userDocRef.get();
-
-                                // **** এই লাইনটাতেই ভুল ছিল, এখন ঠিক করা হলো ****
-                                if (userDocSnap.exists) { // এখানে .exists() হবে না, শুধু .exists হবে
-                                    alert(`Friend found! Name: ${userDocSnap.data().displayName}`);
-                                    const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
-                                    openChat(friendData);
-                                } else {
-                                    alert("Error: User with this UID was not found in the database.");
-                                }
-                            } catch (error) {
-                                console.error("Error fetching friend data:", error);
-                                alert(`An error occurred while fetching friend data: ${error.message}`);
+                            const userDocRef = db.collection('users').doc(friendUid);
+                            const userDocSnap = await userDocRef.get();
+                            if (userDocSnap.exists) { // এখানে .exists() এর বদলে .exists ব্যবহার করা হয়েছে, যা সঠিক।
+                                const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
+                                openChat(friendData);
+                            } else {
+                                alert("User not found!");
                             }
                         } else {
-                            alert("This is not a valid ChatApp QR Code.");
+                            alert("Invalid QR Code.");
                         }
-                        // --- ডিবাগিং শেষ ---
                     },
                     (errorMessage) => {}
                 ).catch((err) => {
+                    console.error("QR Scanner Error:", err);
                     alert("Could not start QR scanner. Please grant camera permission.");
                 });
             } catch(e) {
@@ -408,57 +392,99 @@
             }
         }
         
-        // --- চ্যাট করার সব ফাংশন অপরিবর্তিত ---
-        function openChat(friendData) {
+        // --- এখানে আপনার দেওয়া নতুন এবং উন্নত openChat ফাংশনটি যুক্ত করা হয়েছে ---
+        async function openChat(friendData) {
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
             chatWithName.textContent = friendData.displayName;
             chatAvatar.innerHTML = `<img src="${friendData.photoURL || `https://ui-avatars.com/api/?name=${friendData.displayName}&background=random`}" alt="">`;
+            
             currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
             const chatRef = db.collection('chats').doc(currentChatId);
-            if (unsubscribeMessages) unsubscribeMessages();
-            unsubscribeMessages = chatRef.onSnapshot(docSnap => {
-                messagesWrapper.innerHTML = '';
-                if (docSnap.exists && docSnap.data().messages) {
-                    docSnap.data().messages.forEach(msg => {
-                        const bubble = document.createElement('div');
-                        bubble.className = 'message-bubble ' + (msg.sender === currentUser.uid ? 'my-message' : 'friend-message');
-                        bubble.textContent = msg.text;
-                        messagesWrapper.appendChild(bubble);
+
+            // --- নতুন এবং নিরাপদ কোড শুরু ---
+            try {
+                const chatDoc = await chatRef.get();
+                if (!chatDoc.exists) {
+                    // যদি চ্যাট আগে থেকে তৈরি না থাকে, তাহলে একটা খালি চ্যাট তৈরি করে নেওয়া হচ্ছে
+                    // যাতে Security Rules কোনো বাধা না দেয়।
+                    await chatRef.set({
+                        participants: [currentUser.uid, currentChatFriend.uid],
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        // messages অ্যারেটা প্রথম মেসেজ পাঠানোর সময় তৈরি হবে
                     });
+                    console.log("নতুন চ্যাট তৈরি হলো:", currentChatId);
                 }
+            } catch (error) {
+                console.error("চ্যাট তৈরি করতে সমস্যা:", error);
+                // যদি কোনো কারণে চ্যাট তৈরি না হয়, ব্যবহারকারীকে জানানো যেতে পারে
+                alert("Could not start chat. Please try again.");
+                return; // চ্যাট শুরু না হলে ফাংশন থেকে বেরিয়ে যাওয়া হবে
+            }
+            // --- নতুন এবং নিরাপদ কোড শেষ ---
+
+            if (unsubscribeMessages) unsubscribeMessages();
+            
+            // মেসেজ শোনার জন্য onSnapshot ব্যবহার করা হচ্ছে
+            unsubscribeMessages = chatRef.collection('messages').orderBy('createdAt', 'asc').onSnapshot(snapshot => {
+                messagesWrapper.innerHTML = ''; // পুরনো মেসেজ মুছে ফেলা হচ্ছে
+                snapshot.forEach(doc => {
+                    const msg = doc.data();
+                    const bubble = document.createElement('div');
+                    bubble.className = 'message-bubble ' + (msg.sender === currentUser.uid ? 'my-message' : 'friend-message');
+                    bubble.textContent = msg.text;
+                    messagesWrapper.appendChild(bubble);
+                });
+                 // Scroll to the bottom
+                const messagesContainer = document.querySelector('.messages-container');
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
             });
         }
 
+
+        // --- backArrow ইভেন্ট লিসেনার অপরিবর্তিত ---
         backArrow.addEventListener('click', () => {
             chatWindow.classList.remove('active');
             if (unsubscribeMessages) unsubscribeMessages();
+            currentChatId = null;
+            currentChatFriend = null;
         });
 
+        // --- messageForm সাবমিট ফাংশনটি আরও উন্নত করা হলো ---
         messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = messageInput.value.trim();
-            if (text === '' || !currentChatId) return;
+            if (text === '' || !currentChatId || !currentUser || !currentChatFriend) return;
+            
+            const originalInputValue = messageInput.value;
             messageInput.value = '';
+
             const chatRef = db.collection('chats').doc(currentChatId);
+            const messagesCollectionRef = chatRef.collection('messages');
+            
             const newMessage = {
                 text: text,
                 sender: currentUser.uid,
+                receiver: currentChatFriend.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
             };
-            const chatDoc = await chatRef.get();
-            if (!chatDoc.exists) {
-                await chatRef.set({
-                    participants: [currentUser.uid, currentChatFriend.uid],
-                    messages: [newMessage]
-                });
-            } else {
+
+            try {
+                // messages সাব-কালেকশনে নতুন মেসেজ ডকুমেন্ট যোগ করা হচ্ছে
+                await messagesCollectionRef.add(newMessage);
+
+                // মূল চ্যাট ডকুমেন্টে সর্বশেষ মেসেজ এবং সময় আপডেট করা হচ্ছে
                 await chatRef.update({
-                    messages: firebase.firestore.FieldValue.arrayUnion(newMessage)
+                    lastMessage: text,
+                    lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp()
                 });
+
+            } catch (error) {
+                console.error("Error sending message: ", error);
+                alert("Failed to send message.");
+                messageInput.value = originalInputValue; // মেসেজ পাঠাতে না পারলে ইনপুট ফিল্ডে লেখা ফিরিয়ে আনা হচ্ছে
             }
         });
-
     </script>
 </body>
 </html>
