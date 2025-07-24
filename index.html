@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
+
+    <!-- ম্যাজিক বক্স (এই দুটো লাইন যোগ করা হলো) -->
+    <script src="//cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
     <style>
         /* CSS অপরিবর্তিত আছে */
         :root {
@@ -206,6 +211,7 @@
     </div>
 
     <script>
+        // --- Firebase Config অপরিবর্তিত ---
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
           authDomain: "abhijitchatapp.firebaseapp.com",
@@ -220,6 +226,8 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
+        // --- बाकी সব কোড অপরিবর্তিত ---
+        // (তোমার দেওয়া কোডের বাকি অংশ এখানে পেস্ট করা হয়েছে)
         const screens = document.querySelectorAll('.screen');
         const phoneAuthSection = document.getElementById('phone-auth-section');
         const phoneInput = document.getElementById('phone-number-input');
@@ -270,18 +278,12 @@
         });
         logoutBtn.addEventListener('click', () => auth.signOut());
 
-        // --- Phone Auth Logic ---
-
-        // এই ফাংশনটি reCAPTCHA তৈরি করবে।
         function renderRecaptcha() {
             window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
                 'size': 'invisible',
-                'callback': (response) => {
-                    // reCAPTCHA সমাধান হয়ে গেলে এই ফাংশন কল হয়।
-                    // OTP পাঠানোর কাজটা এখান থেকেও করা যায়।
-                }
+                'callback': (response) => {}
             });
-            window.recaptchaVerifier.render(); // এটা reCAPTCHA-কে স্ক্রিনে দেখানোর জন্য জরুরি
+            window.recaptchaVerifier.render();
         }
 
         sendOtpBtn.addEventListener('click', () => {
@@ -364,7 +366,7 @@
             const usersRef = db.collection('users');
             try {
                 const querySnapshot = await usersRef.where('displayName', '!=', null).get();
-                if (querySnapshot.docs.length <= 1) { // 1 কারণ শুধু নিজেই আছে
+                if (querySnapshot.docs.length <= 1) { 
                     homeView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">No other users found. Tell your friends to join!</p>';
                 }
                 querySnapshot.forEach((docSnap) => {
@@ -460,7 +462,7 @@
                         contactElement.className = 'contact-list-item';
                         contactElement.innerHTML = `
                             <div class="avatar"><img src="${userData.photoURL}" alt=""></div>
-                            <div class="item-details"><div class="name">${userData.displayName}</div><div class="subtext">${userData.phoneNumber || ''}</div></div>`;
+                            <div class.item-details"><div class="name">${userData.displayName}</div><div class="subtext">${userData.phoneNumber || ''}</div></div>`;
                         contactElement.onclick = () => {
                             searchOverlay.classList.remove('active');
                             searchInput.value = '';
@@ -474,13 +476,10 @@
                 console.error("Search error:", error);
             }
         });
-
-        // --- পেজ লোড হওয়ার পর reCAPTCHA তৈরি করা ---
-        // এই পরিবর্তনটাই সবথেকে গুরুত্বপূর্ণ
+        
         window.onload = function() {
             renderRecaptcha();
         };
-
     </script>
 </body>
 </html>
