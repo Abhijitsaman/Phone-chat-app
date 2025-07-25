@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
     <style>
-        /* CSS অপরিবর্তিত আছে */
+        /* CSS কোড অপরিবর্তিত আছে */
         :root {
             --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
             --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
@@ -125,8 +125,8 @@
 </head>
 <body>
 
-    <!-- HTML Body অপরিবর্তিত আছে -->
     <div id="loader-screen" class="screen active"><div class="loader"></div></div>
+    
     <div id="login-screen" class="screen auth-screen active">
         <div>
             <h1>Welcome to ChatApp</h1>
@@ -134,6 +134,7 @@
             <button id="google-signin-btn" class="btn primary-btn">Sign in with Google</button>
         </div>
     </div>
+    
     <div id="display-name-screen" class="screen auth-screen">
         <div>
             <h2>What's your name?</h2>
@@ -144,6 +145,7 @@
             </form>
         </div>
     </div>
+    
     <div id="main-app-screen" class="screen">
         <header id="main-header">
             <h1 class="app-title">ChatApp</h1>
@@ -152,11 +154,11 @@
             </button>
         </header>
         <main id="main-content">
-            <div id="home-view" class="main-view active">
-                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Your added friends will appear here. Add friends using the QR scanner.</p>
+            <div id="home-view" class="main-view">
+                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Your added friends will appear here.</p>
             </div>
-            <div id="chats-view" class="main-view">
-                <p style="text-align:center; padding:20px; color: var(--text-secondary);">Your recent chats will appear here.</p>
+            <div id="chats-view" class="main-view active">
+                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Your recent chats will appear here.</p>
             </div>
             <div id="profile-view" class="main-view">
                  <div style="text-align: center; padding: 20px;">
@@ -170,12 +172,12 @@
             </div>
         </main>
         <nav id="bottom-nav">
-            <button class="nav-btn active" data-view="home-view">
+            <button class="nav-btn" data-view="home-view">
                 <svg viewBox="0 0 24 24"><path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"></path></svg>
                 <span class="nav-text">Home</span>
             </button>
-            <button class="nav-btn" data-view="chats-view">
-                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c-1.1 0-2-.9-2-2V4c0-1.1-.9-2-2z"></path></svg>
+            <button class="nav-btn active" data-view="chats-view">
+                <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2z"></path></svg>
                 <span class="nav-text">Chats</span>
             </button>
             <button class="nav-btn" data-view="profile-view">
@@ -184,6 +186,7 @@
             </button>
         </nav>
     </div>
+    
     <div id="chat-window">
         <header class="chat-header">
             <span class="back-arrow">←</span>
@@ -200,13 +203,13 @@
             </button>
         </form>
     </div>
+
     <div id="qr-scanner-overlay">
         <button id="close-scanner-btn">×</button>
         <div id="qr-reader" style="width: 300px"></div>
     </div>
 
     <script>
-        // --- Firebase Config অপরিবর্তিত ---
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
           authDomain: "abhijitchatapp.firebaseapp.com",
@@ -221,13 +224,13 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
 
-        // --- DOM Elements অপরিবর্তিত ---
+        // DOM Elements
         const screens = document.querySelectorAll('.screen');
         const googleBtn = document.getElementById('google-signin-btn');
         const displayNameForm = document.getElementById('display-name-form');
         const displayNameInput = document.getElementById('display-name-input');
         const homeView = document.getElementById('home-view');
-        const chatsView = document.getElementById('chats-view'); // নতুন
+        const chatsView = document.getElementById('chats-view');
         const navBtns = document.querySelectorAll('.nav-btn');
         const mainViews = document.querySelectorAll('.main-view');
         const chatWindow = document.getElementById('chat-window');
@@ -242,32 +245,35 @@
         const closeScannerBtn = document.getElementById('close-scanner-btn');
         const logoutBtn = document.getElementById('logout-btn');
         
-        // --- গ্লোবাল ভ্যারিয়েবল অপরিবর্তিত ---
+        // Global State
         let currentUser = null;
         let currentChatFriend = null;
         let currentChatId = null;
         let unsubscribeMessages = null;
+        let unsubscribeChats = null;
 
-        // --- Helper ফাংশন অপরিবর্তিত ---
+        // Helper Functions
         const showScreen = (id) => {
             screens.forEach(s => s.classList.remove('active'));
             const screenToShow = document.getElementById(id);
             if (screenToShow) screenToShow.classList.add('active');
         };
         
-        // --- showMainView ফাংশন আপডেট করা হলো ---
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
             navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
             if (viewId === 'profile-view') loadProfileData();
-            if (viewId === 'chats-view') loadChats(); // চ্যাট ভিউ লোড করা হবে
-            if (viewId === 'home-view') loadFriends(); // হোম ভিউ লোড করা হবে
+            if (viewId === 'chats-view') loadChats();
         }
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
 
-        logoutBtn.addEventListener('click', () => auth.signOut());
+        logoutBtn.addEventListener('click', () => {
+            if(unsubscribeChats) unsubscribeChats();
+            if(unsubscribeMessages) unsubscribeMessages();
+            auth.signOut();
+        });
 
-        // --- মূল অথেন্টিকেশন লজিক ---
+        // Main Auth Logic
         auth.onAuthStateChanged(async (user) => {
             if (user) {
                 const userDocRef = db.collection('users').doc(user.uid);
@@ -275,7 +281,7 @@
                 if (userDocSnap.exists && userDocSnap.data().displayName) {
                     currentUser = { uid: user.uid, ...userDocSnap.data() };
                     showScreen('main-app-screen');
-                    showMainView('chats-view'); // লগইন করার পর চ্যাটস পেজ দেখানো হবে
+                    showMainView('chats-view');
                 } else {
                     showScreen('display-name-screen');
                 }
@@ -306,92 +312,92 @@
             }
         });
         
-        // --- প্রোফাইল পেজে ডেটা দেখানোর ফাংশন অপরিবর্তিত ---
+        // Profile Page Logic
         function loadProfileData() {
             if (!currentUser) return;
-            // ... (আগের মতোই)
+            document.getElementById('profile-page-avatar').innerHTML = `<img src="${currentUser.photoURL}" alt="">`;
+            document.getElementById('profile-page-name').textContent = currentUser.displayName;
+            document.getElementById('profile-page-email').textContent = currentUser.email;
+            generateQrCode(currentUser.uid);
+        }
+
+        // QR Code Generation
+        function generateQrCode(uid) {
+            const qrContainer = document.getElementById("qr-code-container");
+            if (!qrContainer) return;
+            qrContainer.innerHTML = "";
+            const qrCode = new QRCodeStyling({
+                width: 220, height: 220, type: "svg", data: `chatapp_user_id:${uid}`,
+                dotsOptions: { color: "#005c4b", type: "rounded" },
+                backgroundOptions: { color: "#ffffff" },
+                cornersSquareOptions: { type: "extra-rounded" }
+            });
+            qrCode.append(qrContainer);
+        }
+
+        // QR Scanner Logic
+        scanQrBtn.addEventListener('click', () => {
+            qrScannerOverlay.style.display = 'flex';
+            startQrScanner();
+        });
+        closeScannerBtn.addEventListener('click', () => stopQrScanner());
+
+        let html5QrCode;
+        function startQrScanner() {
+            html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                (errorMessage) => {}
+            ).catch((err) => alert("Could not start QR scanner. Please grant camera permission."));
         }
         
-        // --- QR কোড লজিক (addFriend ফাংশন যোগ করা হয়েছে) ---
-        let html5QrCode;
         async function onScanSuccess(decodedText, decodedResult) {
             stopQrScanner();
             if (decodedText.startsWith("chatapp_user_id:")) {
                 const friendUid = decodedText.split(":")[1];
                 if(friendUid === currentUser.uid) { alert("You cannot add yourself!"); return; }
-                
-                // বন্ধু যোগ করার নতুন লজিক
-                await addFriend(friendUid);
-
+                const userDocRef = db.collection('users').doc(friendUid);
+                const userDocSnap = await userDocRef.get();
+                if (userDocSnap.exists) {
+                    const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
+                    openChat(friendData);
+                } else {
+                    alert("User not found!");
+                }
             } else {
                 alert("Invalid QR Code.");
             }
         }
         
-        async function addFriend(friendUid) {
-            const userDocRef = db.collection('users').doc(friendUid);
-            const userDocSnap = await userDocRef.get();
-
-            if (userDocSnap.exists) {
-                const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
-                
-                // নিজের friends সাব-কালেকশনে বন্ধুকে যোগ করা
-                await db.collection('users').doc(currentUser.uid).collection('friends').doc(friendUid).set({
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-
-                // বন্ধুর friends সাব-কালেকশনে নিজেকে যোগ করা
-                await db.collection('users').doc(friendUid).collection('friends').doc(currentUser.uid).set({
-                    addedAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-                
-                alert(`${friendData.displayName} is now your friend!`);
-                openChat(friendData); // সরাসরি চ্যাট খুলে যাবে
-
+        function stopQrScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => qrScannerOverlay.style.display = 'none')
+                .catch(err => console.error("Scanner stop failed", err));
             } else {
-                alert("User not found!");
+                qrScannerOverlay.style.display = 'none';
             }
         }
-
-        // --- বন্ধু এবং চ্যাট লিস্ট লোড করার নতুন ফাংশন ---
-        function loadFriends() {
-            if (!currentUser) return;
-            const friendsRef = db.collection('users').doc(currentUser.uid).collection('friends');
-            friendsRef.onSnapshot(async snapshot => {
-                homeView.innerHTML = '';
-                if (snapshot.empty) {
-                    homeView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">Add friends using the QR scanner.</p>';
-                    return;
-                }
-                for (const friendDoc of snapshot.docs) {
-                    const userDoc = await db.collection('users').doc(friendDoc.id).get();
-                    if (userDoc.exists) {
-                         const userData = { uid: userDoc.id, ...userDoc.data() };
-                         const item = document.createElement('div');
-                         item.className = 'contact-list-item';
-                         item.innerHTML = `<div class="avatar"><img src="${userData.photoURL}" alt=""></div> <div class="item-details"><div class="name">${userData.displayName}</div></div>`;
-                         item.onclick = () => openChat(userData);
-                         homeView.appendChild(item);
-                    }
-                }
-            });
-        }
         
+        // Chat List Logic
         function loadChats() {
             if (!currentUser) return;
-            const chatsRef = db.collection('chats').where('participants', 'array-contains', currentUser.uid);
+            if (unsubscribeChats) unsubscribeChats();
             
-            chatsRef.onSnapshot(async snapshot => {
+            const chatsRef = db.collection('chats')
+                .where('participants', 'array-contains', currentUser.uid)
+                .orderBy('lastMessageTimestamp', 'desc');
+            
+            unsubscribeChats = chatsRef.onSnapshot(async (snapshot) => {
                 chatsView.innerHTML = '';
                 if (snapshot.empty) {
                     chatsView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">Your recent chats will appear here.</p>';
                     return;
                 }
-
-                for (const chatDoc of snapshot.docs) {
-                    const chatData = chatDoc.data();
+                for (const doc of snapshot.docs) {
+                    const chatData = doc.data();
                     const friendUid = chatData.participants.find(uid => uid !== currentUser.uid);
-                    
                     if(friendUid) {
                         const userDoc = await db.collection('users').doc(friendUid).get();
                         if (userDoc.exists) {
@@ -403,17 +409,24 @@
                                 <div class="item-details">
                                     <div class="name">${friendData.displayName}</div>
                                     <div class="subtext">${chatData.lastMessage || '...'}</div>
-                                </div>
-                            `;
+                                </div>`;
                             item.onclick = () => openChat(friendData);
                             chatsView.appendChild(item);
                         }
                     }
                 }
+            }, (error) => {
+                 console.error("Error loading chats: ", error);
+                 // Firestore Index তৈরি করার জন্য এরর মেসেজ এবং লিংক এখানে দেখানো হবে
+                 if (error.code === 'failed-precondition') {
+                     chatsView.innerHTML = `<p style="padding:20px; text-align:center; color:red;">
+                         This query needs an index. Please create it in your Firebase console. The link might be in your browser's developer console (F12).
+                     </p>`;
+                 }
             });
         }
-
-        // --- openChat এবং messageForm ফাংশন আপডেট করা হলো ---
+        
+        // Chat Window Logic
         function openChat(friendData) {
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
@@ -432,31 +445,30 @@
                     bubble.textContent = msg.text;
                     messagesWrapper.appendChild(bubble);
                 });
-                const messagesContainer = document.querySelector('.messages-container');
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                const container = document.querySelector('.messages-container');
+                container.scrollTop = container.scrollHeight;
             });
         }
-        
+
+        backArrow.addEventListener('click', () => {
+            chatWindow.classList.remove('active');
+            if (unsubscribeMessages) unsubscribeMessages();
+        });
+
         messageForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const text = messageInput.value.trim();
             if (text === '' || !currentChatId) return;
-            
             const originalText = messageInput.value;
             messageInput.value = '';
-
             const chatRef = db.collection('chats').doc(currentChatId);
             const messagesRef = chatRef.collection('messages');
-            
             try {
-                // চ্যাট ডকুমেন্ট তৈরি বা আপডেট করা
                 await chatRef.set({
                     participants: [currentUser.uid, currentChatFriend.uid],
                     lastMessage: text,
                     lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp()
                 }, { merge: true });
-
-                // মেসেজ সাব-কালেকশনে মেসেজ যোগ করা
                 await messagesRef.add({
                     text: text,
                     sender: currentUser.uid,
@@ -467,10 +479,6 @@
                 messageInput.value = originalText;
             }
         });
-
-        // --- বাকি সব ফাংশন অপরিবর্তিত ---
-        // (startQrScanner, stopQrScanner, ইত্যাদি)
-
     </script>
 </body>
 </html>
