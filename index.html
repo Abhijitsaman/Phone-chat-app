@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
     <style>
-        /* CSS কোড অপরিবর্তিত আছে, শুধুমাত্র নতুন ফিচারের জন্য কিছু স্টাইল যোগ করা হয়েছে */
         :root {
             --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
             --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
@@ -53,7 +52,14 @@
             outline: none; border-color: var(--primary-medium);
             box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25);
         }
-        #main-app-screen { padding-top: 60px; padding-bottom: 70px; }
+
+        /* --- সমাধান: স্ক্রলিংয়ের জন্য সঠিক CSS --- */
+        #main-app-screen { 
+            padding-top: 60px; /* হেডারের উচ্চতা */
+            padding-bottom: 70px; /* নেভিগেশন বারের উচ্চতা */
+            overflow-y: auto; /* <<<--- মূল পরিবর্তন এখানে */
+        }
+        
         #main-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background-color: var(--bg-header); display: flex; align-items: center;
@@ -69,13 +75,14 @@
         #scan-qr-btn { background: none; border: none; cursor: pointer; padding: 8px; }
         #scan-qr-btn svg { width: 26px; height: 26px; fill: var(--text-secondary); }
         
-        /* <--- সমাধান ১: স্ক্রলিং যোগ করা হলো */
         .main-view { 
-            width: 100%; height: 100%; 
-            overflow-y: auto; /* এই লাইনটি যোগ করা হয়েছে */
-            display: none; background: var(--bg-chat-light); 
+            width: 100%; 
+            /* height এবং overflow-y এখান থেকে সরানো হয়েছে */
+            display: none; 
+            background: var(--bg-chat-light); 
         }
         .main-view.active { display: block; }
+        /* --- সমাধান শেষ --- */
 
         .contact-list-item, .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); position: relative; }
         .contact-list-item:hover, .chat-list-item:hover { background-color: var(--bg-header); }
@@ -136,11 +143,11 @@
         #send-button { background: var(--primary-medium); border: none; color: white; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         #send-button svg { width: 24px; height: 24px; fill: white; }
 
-        /* সমাধান ২: কাস্টম কনফার্মেশন ডায়লগের জন্য নতুন স্টাইল */
+        /* কাস্টম কনফার্মেশন ডায়লগের স্টাইল অপরিবর্তিত আছে */
         .custom-confirm-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6); z-index: 1000;
-            display: none; /* ডিফল্টভাবে লুকানো থাকবে */
+            display: none; 
             justify-content: center; align-items: center;
             padding: 20px;
         }
@@ -257,7 +264,6 @@
         <div id="qr-reader" style="width: 300px"></div>
     </div>
 
-    <!-- সমাধান ২: কাস্টম কনফার্মেশন ডায়লগের জন্য নতুন HTML -->
     <div id="custom-confirm-overlay" class="custom-confirm-overlay">
         <div class="custom-confirm-box">
             <p>Are you sure you want to log out?</p>
@@ -270,6 +276,7 @@
 
 
     <script>
+        // আপনার জাভাস্ক্রিপ্ট কোড সম্পূর্ণ অপরিবর্তিত থাকবে
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
           authDomain: "abhijitchatapp.firebaseapp.com",
@@ -305,7 +312,6 @@
         const logoutBtn = document.getElementById('logout-btn');
         const chatSearchBar = document.getElementById('chat-search-bar');
         
-        // সমাধান ২: কাস্টম ডায়লগের জন্য নতুন DOM এলিমেন্ট
         const customConfirmOverlay = document.getElementById('custom-confirm-overlay');
         const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
         const confirmOkBtn = document.getElementById('confirm-ok-btn');
@@ -339,21 +345,19 @@
         }
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
 
-        // সমাধান ২: লগ-আউট এর জন্য পরিবর্তিত ইভেন্ট লিসেনার
         logoutBtn.addEventListener('click', () => {
-            customConfirmOverlay.style.display = 'flex'; // কাস্টম ডায়লগ দেখান
+            customConfirmOverlay.style.display = 'flex';
         });
 
         confirmCancelBtn.addEventListener('click', () => {
-            customConfirmOverlay.style.display = 'none'; // ডায়লগ লুকান
+            customConfirmOverlay.style.display = 'none';
         });
 
         confirmOkBtn.addEventListener('click', () => {
-            // আসল লগআউট কোড এখানে থাকবে
             if(unsubscribeChats) unsubscribeChats();
             if(unsubscribeMessages) unsubscribeMessages();
             auth.signOut();
-            customConfirmOverlay.style.display = 'none'; // ডায়লগ লুকান
+            customConfirmOverlay.style.display = 'none';
         });
 
         // Main Auth Logic
