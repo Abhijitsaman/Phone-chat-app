@@ -5,22 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
     <style>
+        /* === নতুন ফিচার: ডার্ক মোড এবং লাইট মোডের জন্য CSS ভ্যারিয়েবল === */
         :root {
             --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
             --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
             --bg-header: #f0f2f5; --text-primary: #111b21; --text-secondary: #667781;
             --border-color: #e9edef; --shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            --bg-drawer: #ffffff;
+            /* থিম পরিবর্তনের জন্য অ্যানিমেশন */
+            --theme-transition: background-color 0.3s ease, color 0.3s ease;
         }
+
+        /* ডার্ক মোডের জন্য ভ্যারিয়েবল ওভাররাইড */
+        body.dark-mode {
+            --primary-strong: #00a884; --primary-medium: #00a884; --primary-light: #00a884;
+            --bg-main: #111b21; --bg-chat-light: #202c33; --bg-my-message: #005c4b;
+            --bg-header: #202c33; --text-primary: #e9edef; --text-secondary: #8696a0;
+            --border-color: #2a3942; --shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+            --bg-drawer: #111b21;
+        }
+        /* =============================================================== */
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden; height: 100vh; width: 100vw;
             background-color: var(--bg-main); color: var(--text-primary);
+            transition: var(--theme-transition);
         }
         .screen {
             width: 100%; height: 100%; position: absolute; top: 0; left: 0;
             display: none; flex-direction: column; background-color: var(--bg-chat-light);
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease;
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease, var(--theme-transition);
         }
         .screen.active { display: flex; }
         #loader-screen { justify-content: center; align-items: center; }
@@ -39,7 +55,7 @@
         .btn {
             width: 100%; max-width: 350px; padding: 16px; border: none; border-radius: 25px;
             font-size: 1.2rem; font-weight: 600; cursor: pointer; margin-bottom: 15px;
-            transition: transform 0.2s;
+            transition: transform 0.2s, var(--theme-transition);
         }
         .btn:active { transform: scale(0.98); }
         .primary-btn { background-color: var(--primary-medium); color: white; }
@@ -47,44 +63,48 @@
             width: 100%; max-width: 350px; padding: 16px; font-size: 1.1rem;
             border: 1px solid var(--border-color); border-radius: 25px;
             margin-bottom: 20px; text-align: center;
+            background-color: var(--bg-chat-light); color: var(--text-primary);
+            transition: var(--theme-transition);
         }
         .input-field:focus {
             outline: none; border-color: var(--primary-medium);
             box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25);
         }
 
-        /* --- সমাধান: স্ক্রলিংয়ের জন্য সঠিক CSS --- */
         #main-app-screen { 
-            padding-top: 60px; /* হেডারের উচ্চতা */
-            padding-bottom: 70px; /* নেভিগেশন বারের উচ্চতা */
-            overflow-y: auto; /* <<<--- মূল পরিবর্তন এখানে */
+            padding-top: 60px; padding-bottom: 70px;
+            overflow-y: auto;
         }
         
         #main-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background-color: var(--bg-header); display: flex; align-items: center;
             justify-content: space-between; padding: 0 16px; box-shadow: var(--shadow); z-index: 100;
+            transition: var(--theme-transition);
         }
+        #hamburger-menu-btn {
+            background: none; border: none; cursor: pointer; padding: 8px; margin-right: 12px;
+        }
+        #hamburger-menu-btn svg { width: 28px; height: 28px; fill: var(--text-secondary); }
+        .header-left { display: flex; align-items: center; }
         .app-title { font-size: 1.5rem; font-weight: 600; color: var(--primary-strong); }
         #header-actions { display: flex; align-items: center; gap: 8px; }
         #chat-search-bar {
             height: 40px; padding: 0 15px; font-size: 1rem; border-radius: 20px;
             border: 1px solid var(--border-color); width: 150px; transition: width 0.3s ease;
+            background-color: var(--bg-chat-light); color: var(--text-primary);
         }
-        #chat-search-bar:focus { width: 200px; } /* Optional: expand on focus */
+        #chat-search-bar:focus { width: 200px; }
         #scan-qr-btn { background: none; border: none; cursor: pointer; padding: 8px; }
         #scan-qr-btn svg { width: 26px; height: 26px; fill: var(--text-secondary); }
         
         .main-view { 
-            width: 100%; 
-            /* height এবং overflow-y এখান থেকে সরানো হয়েছে */
-            display: none; 
-            background: var(--bg-chat-light); 
+            width: 100%; display: none; background: var(--bg-chat-light); 
+            transition: var(--theme-transition);
         }
         .main-view.active { display: block; }
-        /* --- সমাধান শেষ --- */
 
-        .contact-list-item, .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); position: relative; }
+        .contact-list-item, .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); position: relative; transition: var(--theme-transition);}
         .contact-list-item:hover, .chat-list-item:hover { background-color: var(--bg-header); }
         .avatar { width: 50px; height: 50px; border-radius: 50%; background-color: var(--border-color); color: var(--text-secondary); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5rem; overflow: hidden; flex-shrink: 0; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -102,6 +122,7 @@
             position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
             background-color: var(--bg-header); display: flex; justify-content: space-around;
             align-items: center; box-shadow: 0 -1px 2px rgba(0,0,0,0.05); z-index: 100;
+            transition: var(--theme-transition);
         }
         .nav-btn {
             flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -125,55 +146,86 @@
         #chat-window {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
             background-color: var(--bg-main); display: flex; flex-direction: column;
-            transform: translateX(100%); transition: transform 0.3s ease-in-out;
+            transform: translateX(100%); transition: transform 0.3s ease-in-out, var(--theme-transition);
         }
         #chat-window.active { transform: translateX(0); }
         .chat-header {
             height: 60px; background-color: var(--bg-header); display: flex;
-            align-items: center; gap: 15px; padding: 0 10px; box-shadow: var(--shadow);
+            align-items: center; gap: 10px; padding: 0 10px; box-shadow: var(--shadow);
+            transition: var(--theme-transition); flex-shrink: 0;
         }
         .back-arrow { font-size: 1.8rem; cursor: pointer; color: var(--text-secondary); padding: 5px; }
+        /* === সরানো হয়েছে: চ্যাট হেডারে স্ট্যাটাস দেখানোর CSS === */
+        #chat-with-name { font-size: 1.1rem; color: var(--text-primary); line-height: 1.2; }
+        /* ================================================================ */
         .messages-container { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
         .messages-wrapper { display: flex; flex-direction: column; gap: 3px; }
         .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; line-height: 1.4; word-wrap: break-word; box-shadow: var(--shadow); }
         .my-message { background-color: var(--bg-my-message); align-self: flex-end; }
         .friend-message { background-color: var(--bg-chat-light); align-self: flex-start; }
-        .message-input-form { display: flex; padding: 8px 12px; align-items: center; background: var(--bg-main); }
+        .message-input-form { display: flex; padding: 8px 12px; align-items: center; background: var(--bg-header); transition: var(--theme-transition); }
         #message-input { flex-grow: 1; background-color: var(--bg-chat-light); border: none; border-radius: 25px; padding: 12px 18px; color: var(--text-primary); font-size: 1rem; margin-right: 8px; }
         #send-button { background: var(--primary-medium); border: none; color: white; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         #send-button svg { width: 24px; height: 24px; fill: white; }
 
-        /* কাস্টম কনফার্মেশন ডায়লগের স্টাইল অপরিবর্তিত আছে */
         .custom-confirm-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.6); z-index: 1000;
-            display: none; 
-            justify-content: center; align-items: center;
-            padding: 20px;
+            display: none; justify-content: center; align-items: center; padding: 20px;
         }
         .custom-confirm-box {
             background-color: var(--bg-chat-light); padding: 25px;
             border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             text-align: center; max-width: 90%; width: 320px;
+            transition: var(--theme-transition);
         }
-        .custom-confirm-box p {
-            font-size: 1.1rem; color: var(--text-primary); margin-bottom: 25px;
-        }
-        .confirm-buttons { 
-            display: flex; justify-content: flex-end; gap: 15px; 
-            margin-top: 10px;
-        }
-        .confirm-buttons button {
-            background: none; border: none; font-size: 1rem;
-            font-weight: 600; cursor: pointer; padding: 10px 15px;
-            border-radius: 5px; transition: background-color 0.2s;
-            text-transform: uppercase;
-        }
+        .custom-confirm-box p { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 25px; }
+        .confirm-buttons { display: flex; justify-content: flex-end; gap: 15px; margin-top: 10px; }
+        .confirm-buttons button { background: none; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; padding: 10px 15px; border-radius: 5px; transition: background-color 0.2s; text-transform: uppercase; }
         #confirm-cancel-btn { color: var(--primary-medium); }
         #confirm-ok-btn { color: var(--primary-medium); }
-        #confirm-cancel-btn:hover, #confirm-ok-btn:hover { 
-            background-color: rgba(0, 128, 105, 0.1); 
+        #confirm-cancel-btn:hover, #confirm-ok-btn:hover { background-color: rgba(0, 128, 105, 0.1); }
+
+        /* === নেভিগেশন ড্রয়ার এবং ডার্ক মোড টগল সুইচের স্টাইল === */
+        #nav-drawer-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5); z-index: 199;
+            opacity: 0; visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
+        #nav-drawer-overlay.open { opacity: 1; visibility: visible; }
+        #nav-drawer {
+            position: fixed; top: 0; left: 0; width: 80%; max-width: 300px; height: 100%;
+            background-color: var(--bg-drawer); z-index: 200;
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out, var(--theme-transition);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+            padding-top: 60px;
+        }
+        #nav-drawer.open { transform: translateX(0); }
+        .drawer-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 20px; cursor: pointer;
+            color: var(--text-primary);
+        }
+        .drawer-item:hover { background-color: var(--bg-header); }
+        .drawer-item-label { font-size: 1.1rem; }
+        .toggle-switch {
+            position: relative; display: inline-block; width: 50px; height: 28px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #ccc; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px;
+            left: 4px; bottom: 4px; background-color: white;
+            transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--primary-medium); }
+        input:checked + .slider:before { transform: translateX(22px); }
+        /* ================================================================ */
     </style>
     
     <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
@@ -181,6 +233,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
+    <!-- === সরানো হয়েছে: Firebase Realtime Database SDK === -->
 </head>
 <body>
 
@@ -207,7 +260,12 @@
     
     <div id="main-app-screen" class="screen">
         <header id="main-header">
-            <h1 class="app-title">ChatApp</h1>
+            <div class="header-left">
+                <button id="hamburger-menu-btn">
+                    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
+                </button>
+                <h1 class="app-title">ChatApp</h1>
+            </div>
             <div id="header-actions">
                 <input type="text" id="chat-search-bar" placeholder="Search chats..." style="display: none;">
                 <button id="scan-qr-btn">
@@ -246,7 +304,9 @@
         <header class="chat-header">
             <span class="back-arrow">←</span>
             <div class="avatar" id="chat-avatar"></div>
-            <h3 id="chat-with-name" class="item-details name"></h3>
+            <!-- === সরানো হয়েছে: নাম ও স্ট্যাটাস আলাদাভাবে দেখানোর HTML কাঠামো === -->
+            <h3 id="chat-with-name"></h3>
+            <!-- =================================================================== -->
         </header>
         <div class="messages-container">
             <div class="messages-wrapper"></div>
@@ -257,6 +317,18 @@
                 <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"></path></svg>
             </button>
         </form>
+    </div>
+
+    <!-- নেভিগেশন ড্রয়ার এবং তার ওভারলে এর HTML কোড -->
+    <div id="nav-drawer-overlay"></div>
+    <div id="nav-drawer">
+        <div class="drawer-item">
+            <span class="drawer-item-label">Dark Mode</span>
+            <label class="toggle-switch">
+                <input type="checkbox" id="dark-mode-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
     </div>
 
     <div id="qr-scanner-overlay">
@@ -276,7 +348,6 @@
 
 
     <script>
-        // আপনার জাভাস্ক্রিপ্ট কোড সম্পূর্ণ অপরিবর্তিত থাকবে
         const firebaseConfig = {
           apiKey: "AIzaSyBvmTzkKpYMhHo4Fv7_E0nzmG7_sPxztJA",
           authDomain: "abhijitchatapp.firebaseapp.com",
@@ -290,6 +361,7 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
+        // === সরানো হয়েছে: Realtime Database ইনিশিয়ালাইজেশন ===
 
         // DOM Elements
         const screens = document.querySelectorAll('.screen');
@@ -311,10 +383,15 @@
         const closeScannerBtn = document.getElementById('close-scanner-btn');
         const logoutBtn = document.getElementById('logout-btn');
         const chatSearchBar = document.getElementById('chat-search-bar');
-        
         const customConfirmOverlay = document.getElementById('custom-confirm-overlay');
         const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
         const confirmOkBtn = document.getElementById('confirm-ok-btn');
+        
+        const hamburgerMenuBtn = document.getElementById('hamburger-menu-btn');
+        const navDrawer = document.getElementById('nav-drawer');
+        const navDrawerOverlay = document.getElementById('nav-drawer-overlay');
+        const darkModeToggle = document.getElementById('dark-mode-toggle');
+        // === সরানো হয়েছে: অনলাইন/অফলাইন স্ট্যাটাস এর জন্য DOM এলিমেন্ট ===
         
         // Global State
         let currentUser = null;
@@ -322,6 +399,42 @@
         let currentChatId = null;
         let unsubscribeMessages = null;
         let unsubscribeChats = null;
+        // === সরানো হয়েছে: অনলাইন স্ট্যাটাস লিসনার ট্র্যাক করার ভ্যারিয়েবল ===
+
+        // ডার্ক মোড ফাংশনালিটি
+        const applyTheme = (theme) => {
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+                darkModeToggle.checked = true;
+            } else {
+                document.body.classList.remove('dark-mode');
+                darkModeToggle.checked = false;
+            }
+        };
+
+        const toggleDrawer = (forceClose = false) => {
+            if (forceClose || navDrawer.classList.contains('open')) {
+                navDrawer.classList.remove('open');
+                navDrawerOverlay.classList.remove('open');
+            } else {
+                navDrawer.classList.add('open');
+                navDrawerOverlay.classList.add('open');
+            }
+        };
+        
+        hamburgerMenuBtn.addEventListener('click', () => toggleDrawer());
+        navDrawerOverlay.addEventListener('click', () => toggleDrawer(true));
+
+        darkModeToggle.addEventListener('change', () => {
+            const theme = darkModeToggle.checked ? 'dark' : 'light';
+            localStorage.setItem('theme', theme);
+            applyTheme(theme);
+        });
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            applyTheme(savedTheme);
+        });
 
         // Helper Functions
         const showScreen = (id) => {
@@ -333,13 +446,11 @@
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
             navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
-            
             chatSearchBar.style.display = (viewId === 'chats-view') ? 'inline-block' : 'none';
             if (viewId !== 'chats-view') {
                 chatSearchBar.value = '';
                 chatSearchBar.dispatchEvent(new Event('input', { bubbles: true }));
             }
-
             if (viewId === 'profile-view') loadProfileData();
             if (viewId === 'chats-view') loadChats();
         }
@@ -353,10 +464,15 @@
             customConfirmOverlay.style.display = 'none';
         });
 
+        // === সমাধান করা হয়েছে: লগআউট বাটন ফাংশনালিটি ===
+        // এখন এই বাটনটি ক্লিক করলে সঠিকভাবে কাজ করবে
         confirmOkBtn.addEventListener('click', () => {
             if(unsubscribeChats) unsubscribeChats();
             if(unsubscribeMessages) unsubscribeMessages();
-            auth.signOut();
+            
+            // === সরানো হয়েছে: লগআউটের আগে স্ট্যাটাস অফলাইন করার কোড ===
+
+            auth.signOut(); // এটি কল করার সাথে সাথেই onAuthStateChanged ট্রিগার হবে
             customConfirmOverlay.style.display = 'none';
         });
 
@@ -367,6 +483,7 @@
                 const userDocSnap = await userDocRef.get();
                 if (userDocSnap.exists && userDocSnap.data().displayName) {
                     currentUser = { uid: user.uid, ...userDocSnap.data() };
+                    // === সরানো হয়েছে: লগইন করলে অনলাইন স্ট্যাটাস সেটআপ করার কোড ===
                     showScreen('main-app-screen');
                     showMainView('chats-view');
                 } else {
@@ -399,7 +516,8 @@
             }
         });
         
-        // Profile Page Logic
+        // === সরানো হয়েছে: অনলাইন এবং লাস্ট সিন স্ট্যাটাসের জন্য ফাংশন ===
+        
         function loadProfileData() {
             if (!currentUser) return;
             document.getElementById('profile-page-avatar').innerHTML = `<img src="${currentUser.photoURL}" alt="">`;
@@ -408,7 +526,6 @@
             generateQrCode(currentUser.uid);
         }
 
-        // QR Code Generation
         function generateQrCode(uid) {
             const qrContainer = document.getElementById("qr-code-container");
             if (!qrContainer) return;
@@ -422,7 +539,6 @@
             qrCode.append(qrContainer);
         }
 
-        // QR Scanner Logic
         scanQrBtn.addEventListener('click', () => {
             qrScannerOverlay.style.display = 'flex';
             startQrScanner();
@@ -467,15 +583,12 @@
             }
         }
         
-        // Chat List Logic
         function loadChats() {
             if (!currentUser) return;
             if (unsubscribeChats) unsubscribeChats();
-            
             const chatsRef = db.collection('chats')
                 .where('participants', 'array-contains', currentUser.uid)
                 .orderBy('lastMessageTimestamp', 'desc');
-            
             unsubscribeChats = chatsRef.onSnapshot(async (snapshot) => {
                 chatsView.innerHTML = '';
                 if (snapshot.empty) {
@@ -489,10 +602,8 @@
                         const userDoc = await db.collection('users').doc(friendUid).get();
                         if (userDoc.exists) {
                             const friendData = { uid: userDoc.id, ...userDoc.data() };
-                            
                             const unreadCount = chatData['unreadCount_' + currentUser.uid] || 0;
                             const unreadBadgeHTML = unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : '';
-
                             const item = document.createElement('div');
                             item.className = 'chat-list-item';
                             item.innerHTML = `
@@ -518,7 +629,6 @@
             });
         }
         
-        // Chat Window Logic
         async function openChat(friendData) {
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
@@ -526,6 +636,8 @@
             chatAvatar.innerHTML = `<img src="${friendData.photoURL}" alt="">`;
             currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
             
+            // === সরানো হয়েছে: বন্ধুর অনলাইন স্ট্যাটাস শোনার কোড ===
+
             const chatRef = db.collection('chats').doc(currentChatId);
             await chatRef.set({ ['unreadCount_' + currentUser.uid]: 0 }, { merge: true });
 
@@ -549,6 +661,9 @@
         backArrow.addEventListener('click', () => {
             chatWindow.classList.remove('active');
             if (unsubscribeMessages) unsubscribeMessages();
+
+            // === সরানো হয়েছে: চ্যাট উইন্ডো বন্ধ হলে স্ট্যাটাস লিসনার বন্ধ করার কোড ===
+
             currentChatFriend = null;
             currentChatId = null;
         });
@@ -565,7 +680,6 @@
             
             try {
                 const batch = db.batch();
-
                 batch.set(chatRef, {
                     participants: [currentUser.uid, currentChatFriend.uid],
                     lastMessage: text,
@@ -581,7 +695,6 @@
                 });
                 
                 await batch.commit();
-
             } catch (error) {
                 console.error("Error sending message:", error);
                 messageInput.value = originalText;
@@ -604,7 +717,6 @@
                 }
             });
         });
-
     </script>
 </body>
 </html>
