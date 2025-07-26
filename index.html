@@ -377,7 +377,6 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        // === নতুন ফিচার: Realtime Database ইনিশিয়ালাইজেশন ===
         const rtdb = firebase.database();
 
         // DOM Elements
@@ -403,13 +402,10 @@
         const customConfirmOverlay = document.getElementById('custom-confirm-overlay');
         const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
         const confirmOkBtn = document.getElementById('confirm-ok-btn');
-        
-        // === নতুন ফিচার: ডার্ক মোড এবং ড্রয়ারের জন্য DOM এলিমেন্ট ===
         const hamburgerMenuBtn = document.getElementById('hamburger-menu-btn');
         const navDrawer = document.getElementById('nav-drawer');
         const navDrawerOverlay = document.getElementById('nav-drawer-overlay');
         const darkModeToggle = document.getElementById('dark-mode-toggle');
-        // === নতুন ফিচার: অনলাইন/অফলাইন স্ট্যাটাস এর জন্য DOM এলিমেন্ট ===
         const chatUserStatus = document.getElementById('chat-user-status');
         
         // Global State
@@ -418,10 +414,9 @@
         let currentChatId = null;
         let unsubscribeMessages = null;
         let unsubscribeChats = null;
-        // === নতুন ফিচার: অনলাইন স্ট্যাটাস লিসনার ট্র্যাক করার জন্য ===
         let friendStatusListener = null;
 
-        // === নতুন ফিচার: ডার্ক মোড ফাংশনালিটি ===
+        // Dark Mode Functionality
         const applyTheme = (theme) => {
             if (theme === 'dark') {
                 document.body.classList.add('dark-mode');
@@ -444,19 +439,15 @@
         
         hamburgerMenuBtn.addEventListener('click', () => toggleDrawer());
         navDrawerOverlay.addEventListener('click', () => toggleDrawer(true));
-
         darkModeToggle.addEventListener('change', () => {
             const theme = darkModeToggle.checked ? 'dark' : 'light';
             localStorage.setItem('theme', theme);
             applyTheme(theme);
         });
-        
-        // অ্যাপ লোড হওয়ার সময় সেভ করা থিম প্রয়োগ করা
         document.addEventListener('DOMContentLoaded', () => {
             const savedTheme = localStorage.getItem('theme') || 'light';
             applyTheme(savedTheme);
         });
-        // ===========================================
 
         // Helper Functions
         const showScreen = (id) => {
@@ -486,12 +477,9 @@
             customConfirmOverlay.style.display = 'none';
         });
 
-        // লগআউট বাটন পরিবর্তন করে অনলাইন স্ট্যাটাস আপডেট যোগ করা হয়েছে
         confirmOkBtn.addEventListener('click', async () => {
             if(unsubscribeChats) unsubscribeChats();
             if(unsubscribeMessages) unsubscribeMessages();
-            
-            // === নতুন ফিচার: লগআউটের আগে স্ট্যাটাস অফলাইন করা ===
             if (currentUser) {
                 const userStatusRef = rtdb.ref('/status/' + currentUser.uid);
                 await userStatusRef.set({
@@ -499,8 +487,6 @@
                     last_changed: firebase.database.ServerValue.TIMESTAMP
                 });
             }
-            // ============================================
-
             auth.signOut();
             customConfirmOverlay.style.display = 'none';
         });
@@ -512,9 +498,7 @@
                 const userDocSnap = await userDocRef.get();
                 if (userDocSnap.exists && userDocSnap.data().displayName) {
                     currentUser = { uid: user.uid, ...userDocSnap.data() };
-                    // === নতুন ফিচার: লগইন করলে অনলাইন স্ট্যাটাস সেটআপ করা ===
                     setupPresence(currentUser);
-                    // =====================================================
                     showScreen('main-app-screen');
                     showMainView('chats-view');
                 } else {
@@ -547,28 +531,42 @@
             }
         });
         
-        // === নতুন ফিচার: অনলাইন এবং লাস্ট সিন স্ট্যাটাসের জন্য ফাংশন ===
+        // === ফাংশনটি আপনার দেওয়া নতুন কোড দিয়ে প্রতিস্থাপন করা হলো ===
         function setupPresence(user) {
             const uid = user.uid;
             const userStatusDatabaseRef = rtdb.ref('/status/' + uid);
+
+            // Firestore-এ লাস্ট সিন আপডেট করার জন্য
             const userStatusFirestoreRef = db.doc('/users/' + uid);
 
+            // Realtime Database-এর জন্য স্ট্যাটাস অবজেক্ট
             const isOfflineForDatabase = {
                 state: 'offline',
-                last_changed: firebase.database.ServerValue.TIMESTAMP,
+                last_changed: firebase.database.ServerValue.TIMESTAMP, // RTDB-এর timestamp
             };
             const isOnlineForDatabase = {
                 state: 'online',
-                last_changed: firebase.database.ServerValue.TIMESTAMP,
+                last_changed: firebase.database.ServerValue.TIMESTAMP, // RTDB-এর timestamp
             };
 
+            // ইন্টারনেট কানেকশন চেক করার জন্য
             rtdb.ref('.info/connected').on('value', (snapshot) => {
+                // যদি কানেকশন না থাকে বা চলে যায়
                 if (snapshot.val() === false) {
-                    // Firestore-এও স্ট্যাটাস আপডেট করা যেতে পারে, কিন্তু RTDB এখানে প্রধান
+                    // Firestore-এ লাস্ট সিন আপডেট করা
+                    userStatusFirestoreRef.set({
+                        lastSeen: firebase.firestore.FieldValue.serverTimestamp(), // Firestore-এর timestamp
+                    }, { merge: true });
                     return;
                 }
+
+                // যদি কানেকশন থাকে, তাহলে onDisconnect সেট করা
                 userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(() => {
+                    // onDisconnect সেট হয়ে গেলে, বর্তমান স্ট্যাটাস অনলাইন করে দেওয়া
                     userStatusDatabaseRef.set(isOnlineForDatabase);
+
+                    // Firestore-এ লাস্ট সিন null করে দেওয়া (কারণ ব্যবহারকারী এখন অনলাইন)
+                    userStatusFirestoreRef.set({ lastSeen: null }, { merge: true });
                 });
             });
         }
@@ -576,19 +574,20 @@
         function formatLastSeen(timestamp) {
             if (!timestamp) return '...';
             const now = new Date();
-            const lastSeenDate = new Date(timestamp);
+            // Firestore timestamp-কে JS Date object-এ রূপান্তর করা হচ্ছে
+            const lastSeenDate = timestamp instanceof Date ? timestamp : timestamp.toDate();
             const diffSeconds = Math.floor((now - lastSeenDate) / 1000);
             const diffMins = Math.floor(diffSeconds / 60);
             const diffHours = Math.floor(diffMins / 60);
             const diffDays = Math.floor(diffHours / 24);
 
             if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-            if (diffDays === 1) return 'yesterday';
-            return lastSeenDate.toLocaleDateString();
+            if (diffMins < 60) return `last seen ${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `last seen ${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            if (diffDays === 1) return 'last seen yesterday';
+            // তারিখ ফরম্যাট পরিবর্তন করে আরও বোধগম্য করা হলো
+            return `last seen on ${lastSeenDate.toLocaleDateString()}`;
         }
-        // ===============================================================
         
         function loadProfileData() {
             if (!currentUser) return;
@@ -701,36 +700,51 @@
             });
         }
         
+        // === ফাংশনটি আপনার দেওয়া নতুন কোড দিয়ে প্রতিস্থাপন করা হলো (এবং আরও উন্নত করা হলো) ===
         async function openChat(friendData) {
+            // আগের চ্যাটের লিসনারটি নতুন চ্যাট খোলার আগে সঠিকভাবে বন্ধ করা হচ্ছে
+            if (friendStatusListener && currentChatFriend) {
+                const oldFriendStatusRef = rtdb.ref('/status/' + currentChatFriend.uid);
+                oldFriendStatusRef.off('value', friendStatusListener);
+            }
+
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
             chatWithName.textContent = friendData.displayName;
             chatAvatar.innerHTML = `<img src="${friendData.photoURL}" alt="">`;
-            currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
             
-            // === নতুন ফিচার: বন্ধুর অনলাইন স্ট্যাটাস শোনার জন্য লিসনার যোগ করা ===
+            // বন্ধুর অনলাইন/অফলাইন স্ট্যাটাস শোনার জন্য
             const friendStatusRef = rtdb.ref('/status/' + friendData.uid);
-            // আগের লিসনার থাকলে বন্ধ করা
-            if (friendStatusListener) friendStatusListener.off(); 
-            
-            friendStatusListener = friendStatusRef.on('value', (snapshot) => {
+            friendStatusListener = friendStatusRef.on('value', async (snapshot) => {
                 const status = snapshot.val();
                 if (status && status.state === 'online') {
                     chatUserStatus.textContent = 'online';
                     chatUserStatus.classList.add('online');
                 } else {
-                    const lastSeenText = status ? `last seen ${formatLastSeen(status.last_changed)}` : 'offline';
-                    chatUserStatus.textContent = lastSeenText;
+                    // যদি RTDB-তে স্ট্যাটাস না পাওয়া যায়, তাহলে Firestore থেকে লাস্ট সিন চেক করা
+                    const userDoc = await db.collection('users').doc(friendData.uid).get();
+                    const lastSeenTimestamp = userDoc.data().lastSeen;
+                    
+                    if (lastSeenTimestamp) {
+                        // BUG FIX: Firestore Timestamp object-কে Date object-এ রূপান্তর করা হলো
+                        chatUserStatus.textContent = formatLastSeen(lastSeenTimestamp.toDate());
+                    } else {
+                        // যদি RTDB-তেও অফলাইন থাকে এবং Firestore-এও কোনো সময় না থাকে
+                        const rtdbLastChanged = status ? status.last_changed : null;
+                        chatUserStatus.textContent = rtdbLastChanged ? formatLastSeen(new Date(rtdbLastChanged)) : 'offline';
+                    }
                     chatUserStatus.classList.remove('online');
                 }
             });
-            // ================================================================
 
+            currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
+            
+            // আনরিড কাউন্ট রিসেট করা
             const chatRef = db.collection('chats').doc(currentChatId);
             await chatRef.set({ ['unreadCount_' + currentUser.uid]: 0 }, { merge: true });
 
+            // মেসেজ লোড করার কোড অপরিবর্তিত
             const messagesRef = chatRef.collection('messages').orderBy('createdAt', 'asc');
-
             if (unsubscribeMessages) unsubscribeMessages();
             unsubscribeMessages = messagesRef.onSnapshot(snapshot => {
                 messagesWrapper.innerHTML = '';
@@ -749,18 +763,14 @@
         backArrow.addEventListener('click', () => {
             chatWindow.classList.remove('active');
             if (unsubscribeMessages) unsubscribeMessages();
-
-            // === নতুন ফিচার: চ্যাট উইন্ডো বন্ধ হলে স্ট্যাটাস লিসনার বন্ধ করা ===
             if (friendStatusListener && currentChatFriend) {
                 const friendStatusRef = rtdb.ref('/status/' + currentChatFriend.uid);
                 friendStatusRef.off('value', friendStatusListener);
                 friendStatusListener = null;
             }
-            // ===========================================================
-
             currentChatFriend = null;
             currentChatId = null;
-            chatUserStatus.textContent = ''; // স্ট্যাটাস পরিষ্কার করা
+            chatUserStatus.textContent = '';
         });
 
         messageForm.addEventListener('submit', async (e) => {
