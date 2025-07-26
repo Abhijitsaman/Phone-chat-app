@@ -5,33 +5,23 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Abhijit's ChatApp</title>
     <style>
-        /* CSS অপরিবর্তিত আছে */
+        /* CSS কোড অপরিবর্তিত আছে */
         :root {
             --primary-strong: #005c4b; --primary-medium: #008069; --primary-light: #25d366;
             --bg-main: #e5ddd5; --bg-chat-light: #ffffff; --bg-my-message: #d9fdd3;
             --bg-header: #f0f2f5; --text-primary: #111b21; --text-secondary: #667781;
             --border-color: #e9edef; --shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
-            --bg-drawer: #ffffff;
-            --theme-transition: background-color 0.3s ease, color 0.3s ease;
-        }
-        body.dark-mode {
-            --primary-strong: #00a884; --primary-medium: #00a884; --primary-light: #00a884;
-            --bg-main: #111b21; --bg-chat-light: #202c33; --bg-my-message: #005c4b;
-            --bg-header: #202c33; --text-primary: #e9edef; --text-secondary: #8696a0;
-            --border-color: #2a3942; --shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-            --bg-drawer: #111b21;
         }
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             overflow: hidden; height: 100vh; width: 100vw;
             background-color: var(--bg-main); color: var(--text-primary);
-            transition: var(--theme-transition);
         }
         .screen {
             width: 100%; height: 100%; position: absolute; top: 0; left: 0;
             display: none; flex-direction: column; background-color: var(--bg-chat-light);
-            transition: transform 0.3s ease-in-out, opacity 0.3s ease, var(--theme-transition);
+            transition: transform 0.3s ease-in-out, opacity 0.3s ease;
         }
         .screen.active { display: flex; }
         #loader-screen { justify-content: center; align-items: center; }
@@ -50,7 +40,7 @@
         .btn {
             width: 100%; max-width: 350px; padding: 16px; border: none; border-radius: 25px;
             font-size: 1.2rem; font-weight: 600; cursor: pointer; margin-bottom: 15px;
-            transition: transform 0.2s, var(--theme-transition);
+            transition: transform 0.2s;
         }
         .btn:active { transform: scale(0.98); }
         .primary-btn { background-color: var(--primary-medium); color: white; }
@@ -58,62 +48,33 @@
             width: 100%; max-width: 350px; padding: 16px; font-size: 1.1rem;
             border: 1px solid var(--border-color); border-radius: 25px;
             margin-bottom: 20px; text-align: center;
-            background-color: var(--bg-chat-light); color: var(--text-primary);
-            transition: var(--theme-transition);
         }
         .input-field:focus {
             outline: none; border-color: var(--primary-medium);
             box-shadow: 0 0 0 3px rgba(37, 211, 102, 0.25);
         }
-        #main-app-screen { 
-            padding-top: 60px; padding-bottom: 70px;
-            overflow-y: auto;
-        }
+        #main-app-screen { padding-top: 60px; padding-bottom: 70px; }
         #main-header {
             position: fixed; top: 0; left: 0; width: 100%; height: 60px;
             background-color: var(--bg-header); display: flex; align-items: center;
             justify-content: space-between; padding: 0 16px; box-shadow: var(--shadow); z-index: 100;
-            transition: var(--theme-transition);
         }
-        #hamburger-menu-btn {
-            background: none; border: none; cursor: pointer; padding: 8px; margin-right: 12px;
-        }
-        #hamburger-menu-btn svg { width: 28px; height: 28px; fill: var(--text-secondary); }
-        .header-left { display: flex; align-items: center; }
         .app-title { font-size: 1.5rem; font-weight: 600; color: var(--primary-strong); }
-        #header-actions { display: flex; align-items: center; gap: 8px; }
-        #chat-search-bar {
-            height: 40px; padding: 0 15px; font-size: 1rem; border-radius: 20px;
-            border: 1px solid var(--border-color); width: 150px; transition: width 0.3s ease;
-            background-color: var(--bg-chat-light); color: var(--text-primary);
-        }
-        #chat-search-bar:focus { width: 200px; }
         #scan-qr-btn { background: none; border: none; cursor: pointer; padding: 8px; }
         #scan-qr-btn svg { width: 26px; height: 26px; fill: var(--text-secondary); }
-        .main-view { 
-            width: 100%; display: none; background: var(--bg-chat-light); 
-            transition: var(--theme-transition);
-        }
+        .main-view { width: 100%; height: 100%; overflow-y: auto; display: none; background: var(--bg-chat-light); }
         .main-view.active { display: block; }
-        .contact-list-item, .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); position: relative; transition: var(--theme-transition);}
+        .contact-list-item, .chat-list-item { display: flex; align-items: center; gap: 15px; padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border-color); }
         .contact-list-item:hover, .chat-list-item:hover { background-color: var(--bg-header); }
         .avatar { width: 50px; height: 50px; border-radius: 50%; background-color: var(--border-color); color: var(--text-secondary); display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 1.5rem; overflow: hidden; flex-shrink: 0; }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .item-details { flex-grow: 1; overflow: hidden; }
         .item-details .name { font-weight: 600; font-size: 1.1rem; color: var(--text-primary); }
         .item-details .subtext { color: var(--text-secondary); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .unread-badge {
-            width: 24px; height: 24px; border-radius: 50%;
-            background-color: var(--primary-medium); color: white;
-            font-size: 0.8rem; font-weight: 600;
-            display: flex; justify-content: center; align-items: center;
-            flex-shrink: 0; margin-left: auto;
-        }
         #bottom-nav {
             position: fixed; bottom: 0; left: 0; width: 100%; height: 70px;
             background-color: var(--bg-header); display: flex; justify-content: space-around;
             align-items: center; box-shadow: 0 -1px 2px rgba(0,0,0,0.05); z-index: 100;
-            transition: var(--theme-transition);
         }
         .nav-btn {
             flex: 1; display: flex; flex-direction: column; align-items: center;
@@ -137,86 +98,23 @@
         #chat-window {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 300;
             background-color: var(--bg-main); display: flex; flex-direction: column;
-            transform: translateX(100%); transition: transform 0.3s ease-in-out, var(--theme-transition);
+            transform: translateX(100%); transition: transform 0.3s ease-in-out;
         }
         #chat-window.active { transform: translateX(0); }
         .chat-header {
             height: 60px; background-color: var(--bg-header); display: flex;
-            align-items: center; gap: 10px; padding: 0 10px; box-shadow: var(--shadow);
-            transition: var(--theme-transition); flex-shrink: 0;
+            align-items: center; gap: 15px; padding: 0 10px; box-shadow: var(--shadow);
         }
         .back-arrow { font-size: 1.8rem; cursor: pointer; color: var(--text-secondary); padding: 5px; }
-        #chat-header-details { display: flex; flex-direction: column; }
-        #chat-with-name { font-size: 1.1rem; color: var(--text-primary); line-height: 1.2; }
-        #chat-user-status {
-            font-size: 0.8rem; color: var(--text-secondary); line-height: 1.2;
-            transition: color 0.3s ease;
-        }
-        #chat-user-status.online { color: var(--primary-medium); font-weight: 500; }
         .messages-container { flex-grow: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column-reverse; }
         .messages-wrapper { display: flex; flex-direction: column; gap: 3px; }
         .message-bubble { max-width: 75%; padding: 8px 12px; border-radius: 8px; line-height: 1.4; word-wrap: break-word; box-shadow: var(--shadow); }
         .my-message { background-color: var(--bg-my-message); align-self: flex-end; }
         .friend-message { background-color: var(--bg-chat-light); align-self: flex-start; }
-        .message-input-form { display: flex; padding: 8px 12px; align-items: center; background: var(--bg-header); transition: var(--theme-transition); }
+        .message-input-form { display: flex; padding: 8px 12px; align-items: center; background: var(--bg-main); }
         #message-input { flex-grow: 1; background-color: var(--bg-chat-light); border: none; border-radius: 25px; padding: 12px 18px; color: var(--text-primary); font-size: 1rem; margin-right: 8px; }
         #send-button { background: var(--primary-medium); border: none; color: white; cursor: pointer; width: 50px; height: 50px; border-radius: 50%; display: flex; justify-content: center; align-items: center; flex-shrink: 0; }
         #send-button svg { width: 24px; height: 24px; fill: white; }
-        .custom-confirm-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.6); z-index: 1000;
-            display: none; justify-content: center; align-items: center; padding: 20px;
-        }
-        .custom-confirm-box {
-            background-color: var(--bg-chat-light); padding: 25px;
-            border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-align: center; max-width: 90%; width: 320px;
-            transition: var(--theme-transition);
-        }
-        .custom-confirm-box p { font-size: 1.1rem; color: var(--text-primary); margin-bottom: 25px; }
-        .confirm-buttons { display: flex; justify-content: flex-end; gap: 15px; margin-top: 10px; }
-        .confirm-buttons button { background: none; border: none; font-size: 1rem; font-weight: 600; cursor: pointer; padding: 10px 15px; border-radius: 5px; transition: background-color 0.2s; text-transform: uppercase; }
-        #confirm-cancel-btn { color: var(--primary-medium); }
-        #confirm-ok-btn { color: var(--primary-medium); }
-        #confirm-cancel-btn:hover, #confirm-ok-btn:hover { background-color: rgba(0, 128, 105, 0.1); }
-        #nav-drawer-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5); z-index: 199;
-            opacity: 0; visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
-        }
-        #nav-drawer-overlay.open { opacity: 1; visibility: visible; }
-        #nav-drawer {
-            position: fixed; top: 0; left: 0; width: 80%; max-width: 300px; height: 100%;
-            background-color: var(--bg-drawer); z-index: 200;
-            transform: translateX(-100%);
-            transition: transform 0.3s ease-in-out, var(--theme-transition);
-            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
-            padding-top: 60px;
-        }
-        #nav-drawer.open { transform: translateX(0); }
-        .drawer-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 20px; cursor: pointer;
-            color: var(--text-primary);
-        }
-        .drawer-item:hover { background-color: var(--bg-header); }
-        .drawer-item-label { font-size: 1.1rem; }
-        .toggle-switch {
-            position: relative; display: inline-block; width: 50px; height: 28px;
-        }
-        .toggle-switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc; transition: .4s; border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 20px; width: 20px;
-            left: 4px; bottom: 4px; background-color: white;
-            transition: .4s; border-radius: 50%;
-        }
-        input:checked + .slider { background-color: var(--primary-medium); }
-        input:checked + .slider:before { transform: translateX(22px); }
     </style>
     
     <script src="https://unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
@@ -224,11 +122,11 @@
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database-compat.js"></script>
 </head>
 <body>
 
     <div id="loader-screen" class="screen active"><div class="loader"></div></div>
+    
     <div id="login-screen" class="screen auth-screen active">
         <div>
             <h1>Welcome to ChatApp</h1>
@@ -236,6 +134,7 @@
             <button id="google-signin-btn" class="btn primary-btn">Sign in with Google</button>
         </div>
     </div>
+    
     <div id="display-name-screen" class="screen auth-screen">
         <div>
             <h2>What's your name?</h2>
@@ -246,23 +145,21 @@
             </form>
         </div>
     </div>
+    
     <div id="main-app-screen" class="screen">
         <header id="main-header">
-            <div class="header-left">
-                <button id="hamburger-menu-btn">
-                    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path></svg>
-                </button>
-                <h1 class="app-title">ChatApp</h1>
-            </div>
-            <div id="header-actions">
-                <input type="text" id="chat-search-bar" placeholder="Search chats..." style="display: none;">
-                <button id="scan-qr-btn">
-                    <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 21h8v-8h-8v8zm2-6h4v4h-4v-4z"></path></svg>
-                </button>
-            </div>
+            <h1 class="app-title">ChatApp</h1>
+            <button id="scan-qr-btn">
+                <svg viewBox="0 0 24 24"><path d="M3 11h8V3H3v8zm2-6h4v4H5V5zM3 21h8v-8H3v8zm2-6h4v4H5v-4zM13 3v8h8V3h-8zm6 6h-4V5h4v4zM13 21h8v-8h-8v8zm2-6h4v4h-4v-4z"></path></svg>
+            </button>
         </header>
         <main id="main-content">
-            <div id="chats-view" class="main-view active"></div>
+            <div id="home-view" class="main-view">
+                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Your added friends will appear here.</p>
+            </div>
+            <div id="chats-view" class="main-view active">
+                 <p style="text-align:center; padding:20px; color: var(--text-secondary);">Your recent chats will appear here.</p>
+            </div>
             <div id="profile-view" class="main-view">
                  <div style="text-align: center; padding: 20px;">
                     <div class="avatar" style="width: 120px; height: 120px; margin: 20px auto; font-size: 4rem;" id="profile-page-avatar"></div>
@@ -275,6 +172,10 @@
             </div>
         </main>
         <nav id="bottom-nav">
+            <button class="nav-btn" data-view="home-view">
+                <svg viewBox="0 0 24 24"><path d="M12 5.69l5 4.5V18h-2v-6H9v6H7v-7.81l5-4.5M12 3L2 12h3v8h6v-6h2v6h6v-8h3L12 3z"></path></svg>
+                <span class="nav-text">Home</span>
+            </button>
             <button class="nav-btn active" data-view="chats-view">
                 <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2z"></path></svg>
                 <span class="nav-text">Chats</span>
@@ -290,10 +191,7 @@
         <header class="chat-header">
             <span class="back-arrow">←</span>
             <div class="avatar" id="chat-avatar"></div>
-            <div id="chat-header-details">
-                <h3 id="chat-with-name"></h3>
-                <div id="chat-user-status"></div>
-            </div>
+            <h3 id="chat-with-name" class="item-details name"></h3>
         </header>
         <div class="messages-container">
             <div class="messages-wrapper"></div>
@@ -306,32 +204,10 @@
         </form>
     </div>
 
-    <div id="nav-drawer-overlay"></div>
-    <div id="nav-drawer">
-        <div class="drawer-item">
-            <span class="drawer-item-label">Dark Mode</span>
-            <label class="toggle-switch">
-                <input type="checkbox" id="dark-mode-toggle">
-                <span class="slider"></span>
-            </label>
-        </div>
-    </div>
-
     <div id="qr-scanner-overlay">
         <button id="close-scanner-btn">×</button>
         <div id="qr-reader" style="width: 300px"></div>
     </div>
-
-    <div id="custom-confirm-overlay" class="custom-confirm-overlay">
-        <div class="custom-confirm-box">
-            <p>Are you sure you want to log out?</p>
-            <div class="confirm-buttons">
-                <button id="confirm-cancel-btn">Cancel</button>
-                <button id="confirm-ok-btn">OK</button>
-            </div>
-        </div>
-    </div>
-
 
     <script>
         const firebaseConfig = {
@@ -347,13 +223,13 @@
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
-        const rtdb = firebase.database();
 
         // DOM Elements
         const screens = document.querySelectorAll('.screen');
         const googleBtn = document.getElementById('google-signin-btn');
         const displayNameForm = document.getElementById('display-name-form');
         const displayNameInput = document.getElementById('display-name-input');
+        const homeView = document.getElementById('home-view');
         const chatsView = document.getElementById('chats-view');
         const navBtns = document.querySelectorAll('.nav-btn');
         const mainViews = document.querySelectorAll('.main-view');
@@ -368,15 +244,6 @@
         const qrScannerOverlay = document.getElementById('qr-scanner-overlay');
         const closeScannerBtn = document.getElementById('close-scanner-btn');
         const logoutBtn = document.getElementById('logout-btn');
-        const chatSearchBar = document.getElementById('chat-search-bar');
-        const customConfirmOverlay = document.getElementById('custom-confirm-overlay');
-        const confirmCancelBtn = document.getElementById('confirm-cancel-btn');
-        const confirmOkBtn = document.getElementById('confirm-ok-btn');
-        const hamburgerMenuBtn = document.getElementById('hamburger-menu-btn');
-        const navDrawer = document.getElementById('nav-drawer');
-        const navDrawerOverlay = document.getElementById('nav-drawer-overlay');
-        const darkModeToggle = document.getElementById('dark-mode-toggle');
-        const chatUserStatus = document.getElementById('chat-user-status');
         
         // Global State
         let currentUser = null;
@@ -384,38 +251,6 @@
         let currentChatId = null;
         let unsubscribeMessages = null;
         let unsubscribeChats = null;
-        let friendStatusListener = null;
-
-        // Dark Mode Functionality
-        const applyTheme = (theme) => {
-            if (theme === 'dark') {
-                document.body.classList.add('dark-mode');
-                darkModeToggle.checked = true;
-            } else {
-                document.body.classList.remove('dark-mode');
-                darkModeToggle.checked = false;
-            }
-        };
-        const toggleDrawer = (forceClose = false) => {
-            if (forceClose || navDrawer.classList.contains('open')) {
-                navDrawer.classList.remove('open');
-                navDrawerOverlay.classList.remove('open');
-            } else {
-                navDrawer.classList.add('open');
-                navDrawerOverlay.classList.add('open');
-            }
-        };
-        hamburgerMenuBtn.addEventListener('click', () => toggleDrawer());
-        navDrawerOverlay.addEventListener('click', () => toggleDrawer(true));
-        darkModeToggle.addEventListener('change', () => {
-            const theme = darkModeToggle.checked ? 'dark' : 'light';
-            localStorage.setItem('theme', theme);
-            applyTheme(theme);
-        });
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedTheme = localStorage.getItem('theme') || 'light';
-            applyTheme(savedTheme);
-        });
 
         // Helper Functions
         const showScreen = (id) => {
@@ -427,31 +262,15 @@
         function showMainView(viewId) {
             mainViews.forEach(view => view.classList.toggle('active', view.id === viewId));
             navBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === viewId));
-            chatSearchBar.style.display = (viewId === 'chats-view') ? 'inline-block' : 'none';
-            if (viewId !== 'chats-view') {
-                chatSearchBar.value = '';
-                chatSearchBar.dispatchEvent(new Event('input', { bubbles: true }));
-            }
             if (viewId === 'profile-view') loadProfileData();
             if (viewId === 'chats-view') loadChats();
         }
         navBtns.forEach(btn => btn.addEventListener('click', () => showMainView(btn.dataset.view)));
 
         logoutBtn.addEventListener('click', () => {
-            customConfirmOverlay.style.display = 'flex';
-        });
-        confirmCancelBtn.addEventListener('click', () => {
-            customConfirmOverlay.style.display = 'none';
-        });
-        confirmOkBtn.addEventListener('click', async () => {
             if(unsubscribeChats) unsubscribeChats();
             if(unsubscribeMessages) unsubscribeMessages();
-            if (currentUser) {
-                const userStatusRef = rtdb.ref('/status/' + currentUser.uid);
-                await userStatusRef.set({ state: 'offline', last_changed: firebase.database.ServerValue.TIMESTAMP });
-            }
             auth.signOut();
-            customConfirmOverlay.style.display = 'none';
         });
 
         // Main Auth Logic
@@ -461,7 +280,6 @@
                 const userDocSnap = await userDocRef.get();
                 if (userDocSnap.exists && userDocSnap.data().displayName) {
                     currentUser = { uid: user.uid, ...userDocSnap.data() };
-                    setupPresence(currentUser);
                     showScreen('main-app-screen');
                     showMainView('chats-view');
                 } else {
@@ -493,51 +311,6 @@
                 }, { merge: true });
             }
         });
-
-        /**
-         * @desc আমি আপনার দেওয়া কোডের setupPresence ফাংশনটি এখানে প্রতিস্থাপন করেছি।
-         */
-        function setupPresence(user) {
-            const uid = user.uid;
-            const userStatusDatabaseRef = rtdb.ref('/status/' + uid);
-
-            const isOfflineForDatabase = {
-                state: 'offline',
-                last_changed: firebase.database.ServerValue.TIMESTAMP,
-            };
-            const isOnlineForDatabase = {
-                state: 'online',
-                last_changed: firebase.database.ServerValue.TIMESTAMP,
-            };
-
-            rtdb.ref('.info/connected').on('value', (snapshot) => {
-                if (snapshot.val() === false) {
-                    return;
-                }
-                userStatusDatabaseRef.onDisconnect().set(isOfflineForDatabase).then(() => {
-                    userStatusDatabaseRef.set(isOnlineForDatabase);
-                });
-            });
-        }
-        
-        /**
-         * @desc আমি আপনার দেওয়া কোডের formatLastSeen ফাংশনটি এখানে প্রতিস্থাপন করেছি।
-         */
-        function formatLastSeen(timestamp) {
-            if (!timestamp) return 'offline';
-            const now = new Date();
-            const lastSeenDate = new Date(timestamp);
-            const diffSeconds = Math.floor((now - lastSeenDate) / 1000);
-            const diffMins = Math.floor(diffSeconds / 60);
-            const diffHours = Math.floor(diffMins / 60);
-            const diffDays = Math.floor(diffHours / 24);
-
-            if (diffMins < 1) return 'just now';
-            if (diffMins < 60) return `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
-            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-            if (diffDays === 1) return 'yesterday';
-            return `on ${lastSeenDate.toLocaleDateString()}`;
-        }
         
         // Profile Page Logic
         function loadProfileData() {
@@ -548,30 +321,80 @@
             generateQrCode(currentUser.uid);
         }
 
-        // QR Code Logic
+        // QR Code Generation
         function generateQrCode(uid) {
             const qrContainer = document.getElementById("qr-code-container");
             if (!qrContainer) return;
             qrContainer.innerHTML = "";
-            const qrCode = new QRCodeStyling({ width: 220, height: 220, type: "svg", data: `chatapp_user_id:${uid}`, dotsOptions: { color: "#005c4b", type: "rounded" }, backgroundOptions: { color: "#ffffff" }, cornersSquareOptions: { type: "extra-rounded" } });
+            const qrCode = new QRCodeStyling({
+                width: 220, height: 220, type: "svg", data: `chatapp_user_id:${uid}`,
+                dotsOptions: { color: "#005c4b", type: "rounded" },
+                backgroundOptions: { color: "#ffffff" },
+                cornersSquareOptions: { type: "extra-rounded" }
+            });
             qrCode.append(qrContainer);
         }
 
-        scanQrBtn.addEventListener('click', () => { qrScannerOverlay.style.display = 'flex'; startQrScanner(); });
+        // QR Scanner Logic
+        scanQrBtn.addEventListener('click', () => {
+            qrScannerOverlay.style.display = 'flex';
+            startQrScanner();
+        });
         closeScannerBtn.addEventListener('click', () => stopQrScanner());
+
         let html5QrCode;
-        function startQrScanner() { html5QrCode = new Html5Qrcode("qr-reader"); html5QrCode.start( { facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 250 } }, onScanSuccess, (errorMessage) => {} ).catch((err) => alert("Could not start QR scanner.")); }
-        async function onScanSuccess(decodedText, decodedResult) { stopQrScanner(); if (decodedText.startsWith("chatapp_user_id:")) { const friendUid = decodedText.split(":")[1]; if(friendUid === currentUser.uid) { alert("You cannot add yourself!"); return; } const userDocRef = db.collection('users').doc(friendUid); const userDocSnap = await userDocRef.get(); if (userDocSnap.exists) { const friendData = { uid: userDocSnap.id, ...userDocSnap.data() }; openChat(friendData); } else { alert("User not found!"); } } else { alert("Invalid QR Code."); } }
-        function stopQrScanner() { if (html5QrCode && html5QrCode.isScanning) { html5QrCode.stop().then(() => qrScannerOverlay.style.display = 'none').catch(err => console.error("Scanner stop failed", err)); } else { qrScannerOverlay.style.display = 'none'; } }
+        function startQrScanner() {
+            html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                onScanSuccess,
+                (errorMessage) => {}
+            ).catch((err) => alert("Could not start QR scanner. Please grant camera permission."));
+        }
+        
+        async function onScanSuccess(decodedText, decodedResult) {
+            stopQrScanner();
+            if (decodedText.startsWith("chatapp_user_id:")) {
+                const friendUid = decodedText.split(":")[1];
+                if(friendUid === currentUser.uid) { alert("You cannot add yourself!"); return; }
+                const userDocRef = db.collection('users').doc(friendUid);
+                const userDocSnap = await userDocRef.get();
+                if (userDocSnap.exists) {
+                    const friendData = { uid: userDocSnap.id, ...userDocSnap.data() };
+                    openChat(friendData);
+                } else {
+                    alert("User not found!");
+                }
+            } else {
+                alert("Invalid QR Code.");
+            }
+        }
+        
+        function stopQrScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => qrScannerOverlay.style.display = 'none')
+                .catch(err => console.error("Scanner stop failed", err));
+            } else {
+                qrScannerOverlay.style.display = 'none';
+            }
+        }
         
         // Chat List Logic
         function loadChats() {
             if (!currentUser) return;
             if (unsubscribeChats) unsubscribeChats();
-            const chatsRef = db.collection('chats').where('participants', 'array-contains', currentUser.uid).orderBy('lastMessageTimestamp', 'desc');
+            
+            const chatsRef = db.collection('chats')
+                .where('participants', 'array-contains', currentUser.uid)
+                .orderBy('lastMessageTimestamp', 'desc');
+            
             unsubscribeChats = chatsRef.onSnapshot(async (snapshot) => {
                 chatsView.innerHTML = '';
-                if (snapshot.empty) { chatsView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">Your recent chats will appear here.</p>'; return; }
+                if (snapshot.empty) {
+                    chatsView.innerHTML = '<p style="text-align:center; padding:20px; color: var(--text-secondary);">Your recent chats will appear here.</p>';
+                    return;
+                }
                 for (const doc of snapshot.docs) {
                     const chatData = doc.data();
                     const friendUid = chatData.participants.find(uid => uid !== currentUser.uid);
@@ -579,50 +402,39 @@
                         const userDoc = await db.collection('users').doc(friendUid).get();
                         if (userDoc.exists) {
                             const friendData = { uid: userDoc.id, ...userDoc.data() };
-                            const unreadCount = chatData['unreadCount_' + currentUser.uid] || 0;
-                            const unreadBadgeHTML = unreadCount > 0 ? `<div class="unread-badge">${unreadCount}</div>` : '';
                             const item = document.createElement('div');
                             item.className = 'chat-list-item';
-                            item.innerHTML = ` <div class="avatar"><img src="${friendData.photoURL}" alt=""></div> <div class="item-details"> <div class="name">${friendData.displayName}</div> <div class="subtext">${chatData.lastMessage || '...'}</div> </div> ${unreadBadgeHTML}`;
+                            item.innerHTML = `
+                                <div class="avatar"><img src="${friendData.photoURL}" alt=""></div>
+                                <div class="item-details">
+                                    <div class="name">${friendData.displayName}</div>
+                                    <div class="subtext">${chatData.lastMessage || '...'}</div>
+                                </div>`;
                             item.onclick = () => openChat(friendData);
                             chatsView.appendChild(item);
                         }
                     }
                 }
-                chatSearchBar.dispatchEvent(new Event('input', { bubbles: true }));
-            }, (error) => { console.error("Error loading chats: ", error); if (error.code === 'failed-precondition') { chatsView.innerHTML = `<p style="padding:20px; text-align:center; color:red;"> This query needs an index. Please create it in your Firebase console. </p>`; } });
+            }, (error) => {
+                 console.error("Error loading chats: ", error);
+                 // Firestore Index তৈরি করার জন্য এরর মেসেজ এবং লিংক এখানে দেখানো হবে
+                 if (error.code === 'failed-precondition') {
+                     chatsView.innerHTML = `<p style="padding:20px; text-align:center; color:red;">
+                         This query needs an index. Please create it in your Firebase console. The link might be in your browser's developer console (F12).
+                     </p>`;
+                 }
+            });
         }
         
-        /**
-         * @desc আমি আপনার দেওয়া কোডের openChat ফাংশনটি এখানে প্রতিস্থাপন করেছি।
-         */
-        async function openChat(friendData) {
-            if (friendStatusListener && currentChatFriend) {
-                const oldFriendStatusRef = rtdb.ref('/status/' + currentChatFriend.uid);
-                oldFriendStatusRef.off('value', friendStatusListener);
-            }
+        // Chat Window Logic
+        function openChat(friendData) {
             currentChatFriend = friendData;
             chatWindow.classList.add('active');
             chatWithName.textContent = friendData.displayName;
             chatAvatar.innerHTML = `<img src="${friendData.photoURL}" alt="">`;
-            
-            const friendStatusRef = rtdb.ref('/status/' + friendData.uid);
-            friendStatusListener = friendStatusRef.on('value', (snapshot) => {
-                const status = snapshot.val();
-                if (status && status.state === 'online') {
-                    chatUserStatus.textContent = 'online';
-                    chatUserStatus.classList.add('online');
-                } else {
-                    const lastSeenText = status ? `last seen ${formatLastSeen(status.last_changed)}` : 'offline';
-                    chatUserStatus.textContent = lastSeenText;
-                    chatUserStatus.classList.remove('online');
-                }
-            });
-
             currentChatId = currentUser.uid > friendData.uid ? `${currentUser.uid}_${friendData.uid}` : `${friendData.uid}_${currentUser.uid}`;
-            const chatRef = db.collection('chats').doc(currentChatId);
-            await chatRef.set({ ['unreadCount_' + currentUser.uid]: 0 }, { merge: true });
-            const messagesRef = chatRef.collection('messages').orderBy('createdAt', 'asc');
+            const messagesRef = db.collection('chats').doc(currentChatId).collection('messages').orderBy('createdAt', 'asc');
+
             if (unsubscribeMessages) unsubscribeMessages();
             unsubscribeMessages = messagesRef.onSnapshot(snapshot => {
                 messagesWrapper.innerHTML = '';
@@ -641,14 +453,6 @@
         backArrow.addEventListener('click', () => {
             chatWindow.classList.remove('active');
             if (unsubscribeMessages) unsubscribeMessages();
-            if (friendStatusListener && currentChatFriend) {
-                const friendStatusRef = rtdb.ref('/status/' + currentChatFriend.uid);
-                friendStatusRef.off('value', friendStatusListener);
-                friendStatusListener = null;
-            }
-            currentChatFriend = null;
-            currentChatId = null;
-            chatUserStatus.textContent = '';
         });
 
         messageForm.addEventListener('submit', async (e) => {
@@ -660,27 +464,20 @@
             const chatRef = db.collection('chats').doc(currentChatId);
             const messagesRef = chatRef.collection('messages');
             try {
-                const batch = db.batch();
-                batch.set(chatRef, { participants: [currentUser.uid, currentChatFriend.uid], lastMessage: text, lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp(), ['unreadCount_' + currentChatFriend.uid]: firebase.firestore.FieldValue.increment(1) }, { merge: true });
-                const newMessageRef = messagesRef.doc();
-                batch.set(newMessageRef, { text: text, sender: currentUser.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-                await batch.commit();
+                await chatRef.set({
+                    participants: [currentUser.uid, currentChatFriend.uid],
+                    lastMessage: text,
+                    lastMessageTimestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+                await messagesRef.add({
+                    text: text,
+                    sender: currentUser.uid,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
             } catch (error) {
                 console.error("Error sending message:", error);
                 messageInput.value = originalText;
             }
-        });
-        
-        chatSearchBar.addEventListener('input', (e) => {
-            const searchTerm = e.target.value.toLowerCase().trim();
-            const chatItems = chatsView.querySelectorAll('.chat-list-item');
-            chatItems.forEach(item => {
-                const nameElement = item.querySelector('.item-details .name');
-                if (nameElement) {
-                    const name = nameElement.textContent.toLowerCase();
-                    if (name.includes(searchTerm)) { item.style.display = 'flex'; } else { item.style.display = 'none'; }
-                }
-            });
         });
     </script>
 </body>
